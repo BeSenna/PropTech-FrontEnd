@@ -1,21 +1,24 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { getToken, http, setToken, setUnauthorizedHandler } from '../lib/http';
+"use client";
+
+import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { getToken, http, setToken, setUnauthorizedHandler } from "@/lib/http";
 
 export interface SessionUser {
   usuarioId: number;
   usuarioLogin: string;
-  usuarioPerfil: 'SINDICO' | 'MORADOR';
+  usuarioPerfil: "SINDICO" | "MORADOR";
   moradorId: number | null;
 }
 
 interface AuthState {
   user: SessionUser | null;
+  /** false até a sessão guardada no navegador ser lida e revalidada */
   ready: boolean;
-  login(login: string, senha: string, esperado?: 'SINDICO' | 'MORADOR'): Promise<SessionUser>;
+  login(login: string, senha: string, esperado?: "SINDICO" | "MORADOR"): Promise<SessionUser>;
   logout(): void;
 }
 
-const USER_KEY = 'proptech.user';
+const USER_KEY = "proptech.user";
 const Ctx = createContext<AuthState | null>(null);
 
 function readUser(): SessionUser | null {
@@ -28,7 +31,8 @@ function readUser(): SessionUser | null {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(readUser);
+  // começa vazio nos dois lados (servidor e navegador) para a hidratação bater; a sessão é lida no efeito
+  const [user, setUser] = useState<SessionUser | null>(null);
   const [ready, setReady] = useState(false);
 
   const logout = useCallback(() => {
@@ -46,14 +50,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setUnauthorizedHandler(null);
   }, [logout]);
 
-  // Revalida o token guardado (também pega usuário desativado, já que o back consulta o banco a cada request).
+  // Lê a sessão salva e revalida o token (pega também usuário desativado, já que o back consulta o banco a cada request).
   useEffect(() => {
     let vivo = true;
     (async () => {
-      if (getToken()) {
+      const salvo = readUser();
+      if (salvo) setUser(salvo);
+      if (salvo) {
         try {
-          const me = await http<{ usuarioId: number; moradorId: number | null; usuarioPerfil: 'SINDICO' | 'MORADOR' }>('/auth/me');
-          if (vivo) setUser((u) => (u ? { ...u, usuarioPerfil: me.usuarioPerfil, moradorId: me.moradorId } : u));
+          const me = await http<{ usuarioId: number; moradorId: number | null; usuarioPerfil: "SINDICO" | "MORADOR" }>("/auth/me");
+          if (vivo) setUser({ ...salvo, usuarioPerfil: me.usuarioPerfil, moradorId: me.moradorId });
         } catch (e) {
           if (vivo && (e as { status?: number }).status === 401) logout();
         }
@@ -65,15 +71,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [logout]);
 
-  const login = useCallback(async (usuarioLogin: string, senha: string, esperado?: 'SINDICO' | 'MORADOR') => {
-    const r = await http<{ accessToken: string; usuario: SessionUser }>('/auth/login', {
-      method: 'POST',
+  const login = useCallback(async (usuarioLogin: string, senha: string, esperado?: "SINDICO" | "MORADOR") => {
+    const r = await http<{ accessToken: string; usuario: SessionUser }>("/auth/login", {
+      method: "POST",
       body: { usuarioLogin, senha },
     });
     // confere o perfil ANTES de guardar a sessão, para não "piscar" dentro do sistema com o botão errado
     if (esperado && r.usuario.usuarioPerfil !== esperado) {
       throw new Error(
-        r.usuario.usuarioPerfil === 'SINDICO'
+        r.usuario.usuarioPerfil === "SINDICO"
           ? 'Esta conta é de síndico(a). Use o botão "Entrar como Síndico(a)".'
           : 'Esta conta é de morador. Use o botão "Entrar como Morador".',
       );
@@ -94,6 +100,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthState {
   const c = useContext(Ctx);
-  if (!c) throw new Error('useAuth fora do AuthProvider');
+  if (!c) throw new Error("useAuth fora do AuthProvider");
   return c;
 }

@@ -1,5 +1,8 @@
+'use client';
+
 import { useState } from 'react';
 import { ConfirmModal } from './Modal';
+import { btn, inputCls } from './ui';
 import { useToast } from './Toast';
 import { encerrarVinculo, limparCache } from '../resources/api';
 import { hoje } from '../lib/format';
@@ -28,14 +31,14 @@ export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }
   };
   return (
     <>
-      <button type="button" className="btn btn-glass" onClick={() => setOpen(true)}>
+      <button type="button" className={btn('glass')} onClick={() => setOpen(true)}>
         Encerrar vínculo
       </button>
       {open && (
         <ConfirmModal title="Encerrar vínculo" text="Informe a data de fim. Se for futura, o vínculo fica ENCERRANDO até lá." confirmLabel="Encerrar" busy={busy} onConfirm={confirmar} onCancel={() => setOpen(false)}>
-          <div className="field" style={{ marginBottom: 18 }}>
-            <label htmlFor="df">Data de fim · morador_imovel_data_fim</label>
-            <input id="df" className="input" type="date" value={data} min={String(row.moradorImovelDataInicio).slice(0, 10)} onChange={(e) => setData(e.target.value)} />
+          <div className="mb-[18px] flex flex-col gap-[7px]">
+            <label htmlFor="df" className="text-[11.5px] font-bold text-ink-2">Data de fim · morador_imovel_data_fim</label>
+            <input id="df" className={inputCls} type="date" value={data} min={String(row.moradorImovelDataInicio).slice(0, 10)} onChange={(e) => setData(e.target.value)} />
           </div>
         </ConfirmModal>
       )}

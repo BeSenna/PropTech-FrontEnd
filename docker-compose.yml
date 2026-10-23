@@ -1,0 +1,13 @@
+# Sobe o frontend (Next.js, porta 7520). As variáveis vêm do ambiente, que no projeto vem do Infisical:
+#   npx infisical run --env=dev -- docker compose up -d --build
+services:
+  frontend:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_BASE_PATH: ${NEXT_PUBLIC_BASE_PATH:-}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-/condominio/gateway/morador}
+    container_name: proptech-frontend
+    restart: unless-stopped
+    ports:
+      - "7520:7520"

@@ -1,17 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, Empty, ErrorBox, Loading, PageHeader } from '../components/ui';
-import type { Option, Rec, ResourceConfig } from '../lib/types';
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { btn, Card, cx, Empty, ErrorBox, inputAutoCls, Loading, MockTag, PageHeader, searchCls } from "@/components/ui";
+import type { Option, Rec, ResourceConfig } from "@/lib/types";
 
 const PAGE_SIZE = 10;
 type Filters = Record<string, string | number | undefined>;
 
 export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
-  const nav = useNavigate();
-  const [sp] = useSearchParams();
+  const router = useRouter();
+  const sp = useSearchParams();
   const [chip, setChip] = useState(0);
-  const [busca, setBusca] = useState(() => sp.get('busca') ?? '');
-  const [buscaAtiva, setBuscaAtiva] = useState(() => (sp.get('busca') ?? '').trim());
+  const [busca, setBusca] = useState(() => sp.get("busca") ?? "");
+  const [buscaAtiva, setBuscaAtiva] = useState(() => (sp.get("busca") ?? "").trim());
   const [page, setPage] = useState(1);
   const [selects, setSelects] = useState<Record<string, string>>({});
   const [selOpts, setSelOpts] = useState<Record<string, Option[]>>({});
@@ -20,10 +23,16 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   const [total, setTotal] = useState(0);
   const [counts, setCounts] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [erro, setErro] = useState('');
+  const [erro, setErro] = useState("");
 
-  const chips = cfg.chips ?? [{ label: 'Todos', filters: {} }];
+  const chips = cfg.chips ?? [{ label: "Todos", filters: {} }];
   const local = !!cfg.localFilterKeys?.length;
+  const buscaUrl = sp.get("busca");
+
+  // a busca do topo (?busca=) chega pela URL, inclusive quando já estamos na lista
+  useEffect(() => {
+    setBusca(buscaUrl ?? "");
+  }, [buscaUrl]);
 
   // filtros vindos da URL (?blocoId=1) e dos selects da barra
   const baseFilters = useMemo<Filters>(() => {
@@ -68,7 +77,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
 
   const carregar = useCallback(async () => {
     setLoading(true);
-    setErro('');
+    setErro("");
     try {
       const ativo = chips[chip]?.filters ?? {};
       if (local) {
@@ -116,9 +125,10 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   }, [rows, sort, cfg]);
 
   const paginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const novo = cfg.newLabel ?? `${cfg.gender === 'm' ? 'Novo' : 'Nova'} ${cfg.singular}`;
-  const abrir = (r: Rec) => nav(`${cfg.path}/${r[cfg.idKey]}${cfg.hasDetail ? '' : '/editar'}`);
+  const novo = cfg.newLabel ?? `${cfg.gender === "m" ? "Novo" : "Nova"} ${cfg.singular}`;
+  const abrir = (r: Rec) => router.push(`${cfg.path}/${r[cfg.idKey]}${cfg.hasDetail ? "" : "/editar"}`);
   const pageNumbers = Array.from({ length: paginas }, (_, i) => i + 1).filter((n) => n === 1 || n === paginas || Math.abs(n - page) <= 1);
+  const pagBtn = "h-7 min-w-7 rounded-[7px] border text-[11.5px] font-semibold disabled:cursor-default disabled:opacity-40";
 
   return (
     <>
@@ -126,29 +136,28 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         title={cfg.plural}
         sub={
           <>
-            {cfg.endpoint} — {total} registro{total === 1 ? '' : 's'}
-            {cfg.mockTag && <span className="mock-tag">DADOS SIMULADOS</span>}
-            {cfg.listSub && <span className="mock-tag" style={{ background: 'var(--blue-bg)', color: 'var(--primary)' }}>{cfg.listSub}</span>}
+            {cfg.endpoint} — {total} registro{total === 1 ? "" : "s"}
+            {cfg.mockTag && <MockTag />}
+            {cfg.listSub && <MockTag blue>{cfg.listSub}</MockTag>}
           </>
         }
         actions={
-          <Link to={`${cfg.path}/novo`} className="btn btn-primary">
+          <Link href={`${cfg.path}/novo`} className={btn("primary")}>
             + {novo}
           </Link>
         }
       />
 
-      <div className="toolbar">
+      <div className="mb-4 flex flex-wrap items-center gap-2.5">
         {cfg.searchable && (
-          <input className="search" type="search" placeholder={cfg.searchPlaceholder ?? 'Buscar...'} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar" />
+          <input className={cx(searchCls, "w-[280px] max-w-full bg-white!")} type="search" placeholder={cfg.searchPlaceholder ?? "Buscar..."} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar" />
         )}
         {cfg.selectFilters?.map((s) => (
           <select
             key={s.param}
-            className="input"
-            style={{ width: 'auto', minWidth: 160 }}
+            className={inputAutoCls}
             aria-label={s.label}
-            value={selects[s.param] ?? sp.get(s.param) ?? ''}
+            value={selects[s.param] ?? sp.get(s.param) ?? ""}
             onChange={(e) => {
               setSelects((x) => ({ ...x, [s.param]: e.target.value }));
               setPage(1);
@@ -167,14 +176,14 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             <button
               key={c.label}
               type="button"
-              className={`chip ${i === chip ? 'on' : ''}`}
+              className={cx("rounded-full border px-3.5 py-1.5 text-xs font-bold", i === chip ? "border-primary bg-primary text-white" : "border-line bg-white text-ink-2")}
               onClick={() => {
                 setChip(i);
                 setPage(1);
               }}
             >
               {c.label}
-              {counts[i] !== undefined ? ` (${counts[i]})` : ''}
+              {counts[i] !== undefined ? ` (${counts[i]})` : ""}
             </button>
           ))}
       </div>
@@ -186,18 +195,18 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         ) : rows.length === 0 && !erro ? (
           <Empty>Nenhum registro encontrado.</Empty>
         ) : (
-          <div className="table-wrap">
-            <table className="t">
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
               <thead>
                 <tr>
                   {cfg.columns.map((c) => (
                     <th
                       key={c.key}
-                      className={c.sortValue ? 'sortable' : ''}
+                      className={cx("border-b border-line px-[18px] py-3.5 text-left text-[10.5px] font-bold tracking-[0.03em] whitespace-nowrap text-muted uppercase select-none", c.sortValue && "cursor-pointer")}
                       onClick={() => c.sortValue && setSort((s) => (s?.key === c.key ? { key: c.key, dir: (s.dir * -1) as 1 | -1 } : { key: c.key, dir: 1 }))}
                     >
                       {c.label}
-                      {c.sortValue && <span className="arrow">{sort?.key === c.key ? (sort.dir === 1 ? '↑' : '↓') : '⇅'}</span>}
+                      {c.sortValue && <span className="ml-1 text-muted-2">{sort?.key === c.key ? (sort.dir === 1 ? "↑" : "↓") : "⇅"}</span>}
                     </th>
                   ))}
                 </tr>
@@ -207,14 +216,15 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                   <tr
                     key={r[cfg.idKey]}
                     tabIndex={0}
+                    className="cursor-pointer hover:bg-[#f8f9fd]"
                     onClick={() => abrir(r)}
                     onKeyDown={(e) => {
-                      if (e.key === 'Enter') abrir(r);
+                      if (e.key === "Enter") abrir(r);
                     }}
                   >
                     {cfg.columns.map((c) => (
-                      <td key={c.key} className={c.strong ? 'strong' : ''}>
-                        {c.render ? c.render(r) : (r[c.key] ?? '—')}
+                      <td key={c.key} className={cx("border-b border-line-soft px-[18px] py-[13px] align-middle", c.strong && "font-bold")}>
+                        {c.render ? c.render(r) : (r[c.key] ?? "—")}
                       </td>
                     ))}
                   </tr>
@@ -223,23 +233,23 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             </table>
           </div>
         )}
-        <div className="t-foot">
+        <div className="flex items-center justify-between px-[18px] py-3 text-[11.5px] text-muted">
           <span>
             Exibindo {rows.length} de {total}
           </span>
-          <div className="pager">
-            <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label="Página anterior">
+          <div className="flex items-center gap-1">
+            <button type="button" className={`${pagBtn} border-line bg-white`} disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label="Página anterior">
               ‹
             </button>
             {pageNumbers.map((n, i) => (
-              <span key={n} style={{ display: 'contents' }}>
+              <span key={n} className="contents">
                 {i > 0 && n - pageNumbers[i - 1]! > 1 && <span>…</span>}
-                <button type="button" className={n === page ? 'on' : ''} onClick={() => setPage(n)}>
+                <button type="button" className={cx(pagBtn, n === page ? "border-primary bg-primary text-white" : "border-line bg-white")} onClick={() => setPage(n)}>
                   {n}
                 </button>
               </span>
             ))}
-            <button type="button" disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label="Próxima página">
+            <button type="button" className={`${pagBtn} border-line bg-white`} disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label="Próxima página">
               ›
             </button>
           </div>
