@@ -83,4 +83,7 @@ Para adicionar um recurso novo: crie o `ResourceConfig` em `src/resources/` e in
 
 - Todas as telas são componentes de cliente: dependem de `localStorage` (JWT/mocks) e a guarda de perfil só renderiza o conteúdo depois de a sessão ser lida no navegador (sem erro de hidratação).
 - `401` em qualquer chamada (inclusive usuário desativado — o backend consulta o banco a cada requisição) encerra a sessão.
+- **CPF:** o formulário de morador confere os dígitos verificadores antes de enviar (`cpfValido` em `src/lib/format.ts`, mesma regra do backend). Para testar, use um CPF válido, como `529.982.247-25`; `111.111.111-11` é recusado.
+- **Privacidade (LGPD):** a lista de moradores e a de relações só existem para o síndico no backend. O Portal do Morador lê apenas o próprio cadastro (`GET /morador/:id` com o `moradorId` da sessão); qualquer outro id devolve 403.
+- Campos do formulário aceitam validação própria via `validate` em `FieldDef` (`src/lib/types.ts`); a mensagem retornada aparece no topo do formulário e nada é enviado à API.
 - A fonte Inter vem do Google Fonts; sem internet o navegador usa a fonte do sistema.
