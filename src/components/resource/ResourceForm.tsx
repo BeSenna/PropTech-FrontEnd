@@ -99,6 +99,11 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
         setErro(`Preencha o campo "${f.label}".`);
         return;
       }
+      const msg = f.validate && v !== "" && v !== undefined && v !== null ? f.validate(v) : null;
+      if (msg) {
+        setErro(msg);
+        return;
+      }
     }
     if (cfg.extraFormSection === "vinculoAcesso" && mode === "create" && values._acesso) {
       if (!String(values._login).trim()) return setErro("Informe o login de acesso.");

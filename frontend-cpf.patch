@@ -1,0 +1,99 @@
+From 4526aefb7a7ffe11d187ab9b1b840bfb267940e5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Beb=C3=AA?= <bernardoacademicosmc@gmail.com>
+Date: Tue, 27 Oct 2026 20:08:07 -0300
+Subject: [PATCH] =?UTF-8?q?Update:=20Valida=20o=20CPF=20no=20formul=C3=A1r?=
+ =?UTF-8?q?io=20de=20morador?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- cpfValido() em lib/format.ts, com a mesma regra do backend (11 dígitos, sem
+  sequência repetida e com os dígitos verificadores corretos).
+- FieldDef ganha validate(); o ResourceForm roda a validação antes de enviar.
+- Campo CPF mostra o texto de ajuda e barra CPF inválido sem chamar a API.
+
+Co-Authored-By: Claude Sonnet 5.5 <noreply@anthropic.com>
+Claude-Session: https://claude.ai/code/session_01Ke5UaubjrcNpx26UB98Ya7
+---
+ src/components/resource/ResourceForm.tsx |  5 +++++
+ src/lib/format.ts                        | 13 +++++++++++++
+ src/lib/types.ts                         |  1 +
+ src/resources/moradores.tsx              |  4 ++--
+ 4 files changed, 21 insertions(+), 2 deletions(-)
+
+diff --git a/src/components/resource/ResourceForm.tsx b/src/components/resource/ResourceForm.tsx
+index 2465ec1..14db2d5 100644
+--- a/src/components/resource/ResourceForm.tsx
++++ b/src/components/resource/ResourceForm.tsx
+@@ -99,6 +99,11 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
+         setErro(`Preencha o campo "${f.label}".`);
+         return;
+       }
++      const msg = f.validate && v !== "" && v !== undefined && v !== null ? f.validate(v) : null;
++      if (msg) {
++        setErro(msg);
++        return;
++      }
+     }
+     if (cfg.extraFormSection === "vinculoAcesso" && mode === "create" && values._acesso) {
+       if (!String(values._login).trim()) return setErro("Informe o login de acesso.");
+diff --git a/src/lib/format.ts b/src/lib/format.ts
+index 6e3a361..85e036d 100644
+--- a/src/lib/format.ts
++++ b/src/lib/format.ts
+@@ -24,6 +24,19 @@ export function fmtMoney(v: unknown): string {
+   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+ }
+ 
++// Mesma regra do backend: 11 dígitos, não repetidos, com os dois dígitos verificadores corretos.
++export function cpfValido(v?: string | null): boolean {
++  const d = onlyDigits(v ?? '');
++  if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
++  const dv = (base: string, peso: number) => {
++    let soma = 0;
++    for (let i = 0; i < base.length; i++) soma += Number(base[i]) * (peso - i);
++    const r = (soma * 10) % 11;
++    return r === 10 ? 0 : r;
++  };
++  return dv(d.slice(0, 9), 10) === Number(d[9]) && dv(d.slice(0, 10), 11) === Number(d[10]);
++}
++
+ export function fmtCpf(v?: string | null): string {
+   const d = onlyDigits(v ?? '');
+   if (d.length !== 11) return v || '—';
+diff --git a/src/lib/types.ts b/src/lib/types.ts
+index 7873cdb..2ffaaab 100644
+--- a/src/lib/types.ts
++++ b/src/lib/types.ts
+@@ -58,6 +58,7 @@ export interface FieldDef {
+   min?: number;
+   step?: string;
+   maxLength?: number;
++  validate?: (value: unknown) => string | null; // mensagem de erro (ou null se válido); só roda com o campo preenchido
+   mode?: 'create' | 'edit'; // visível só nesse modo
+ }
+ 
+diff --git a/src/resources/moradores.tsx b/src/resources/moradores.tsx
+index 135d47d..3fb398e 100644
+--- a/src/resources/moradores.tsx
++++ b/src/resources/moradores.tsx
+@@ -1,6 +1,6 @@
+ // Configuração dos recursos do MS Moradores (API real).
+ import { http } from '../lib/http';
+-import { andarTxt, fmtArea, fmtCpf, fmtDate, fmtDateTime, iniciais, onlyDigits, toDateInput } from '../lib/format';
++import { andarTxt, cpfValido, fmtArea, fmtCpf, fmtDate, fmtDateTime, iniciais, onlyDigits, toDateInput } from '../lib/format';
+ import type { Rec, ResourceConfig } from '../lib/types';
+ import { Badge } from '../components/ui';
+ import { EncerrarButton } from '../components/EncerrarButton';
+@@ -268,7 +268,7 @@ export const moradorCfg: ResourceConfig = {
+   searchPlaceholder: 'Buscar por nome, CPF ou e-mail...',
+   fields: [
+     { name: 'moradorNome', label: 'Nome completo', col: 'morador_nome', type: 'text', required: true, maxLength: 300 },
+-    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00' },
++    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00', fkNote: 'Informe um CPF válido (os dígitos verificadores são conferidos).', validate: (v) => (cpfValido(String(v)) ? null : 'CPF inválido. Confira os números digitados.') },
+     { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'date', half: true },
+     { name: 'moradorEmail', label: 'E-mail', col: 'morador_email', type: 'text', half: true, maxLength: 150, placeholder: 'nome@email.com' },
+     { name: 'moradorTelefone', label: 'Telefone', col: 'morador_telefone', type: 'text', half: true, maxLength: 20, placeholder: '(21) 90000-0000' },
+-- 
+2.43.0
+

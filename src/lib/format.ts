@@ -24,6 +24,19 @@ export function fmtMoney(v: unknown): string {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
+// Mesma regra do backend: 11 dígitos, não repetidos, com os dois dígitos verificadores corretos.
+export function cpfValido(v?: string | null): boolean {
+  const d = onlyDigits(v ?? '');
+  if (d.length !== 11 || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = (base: string, peso: number) => {
+    let soma = 0;
+    for (let i = 0; i < base.length; i++) soma += Number(base[i]) * (peso - i);
+    const r = (soma * 10) % 11;
+    return r === 10 ? 0 : r;
+  };
+  return dv(d.slice(0, 9), 10) === Number(d[9]) && dv(d.slice(0, 10), 11) === Number(d[10]);
+}
+
 export function fmtCpf(v?: string | null): string {
   const d = onlyDigits(v ?? '');
   if (d.length !== 11) return v || '—';

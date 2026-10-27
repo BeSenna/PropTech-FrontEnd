@@ -58,6 +58,7 @@ export interface FieldDef {
   min?: number;
   step?: string;
   maxLength?: number;
+  validate?: (value: unknown) => string | null; // mensagem de erro (ou null se válido); só roda com o campo preenchido
   mode?: 'create' | 'edit'; // visível só nesse modo
 }
 

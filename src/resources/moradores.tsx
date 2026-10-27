@@ -1,6 +1,6 @@
 // Configuração dos recursos do MS Moradores (API real).
 import { http } from '../lib/http';
-import { andarTxt, fmtArea, fmtCpf, fmtDate, fmtDateTime, iniciais, onlyDigits, toDateInput } from '../lib/format';
+import { andarTxt, cpfValido, fmtArea, fmtCpf, fmtDate, fmtDateTime, iniciais, onlyDigits, toDateInput } from '../lib/format';
 import type { Rec, ResourceConfig } from '../lib/types';
 import { Badge } from '../components/ui';
 import { EncerrarButton } from '../components/EncerrarButton';
@@ -268,7 +268,7 @@ export const moradorCfg: ResourceConfig = {
   searchPlaceholder: 'Buscar por nome, CPF ou e-mail...',
   fields: [
     { name: 'moradorNome', label: 'Nome completo', col: 'morador_nome', type: 'text', required: true, maxLength: 300 },
-    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00' },
+    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00', fkNote: 'Informe um CPF válido (os dígitos verificadores são conferidos).', validate: (v) => (cpfValido(String(v)) ? null : 'CPF inválido. Confira os números digitados.') },
     { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'date', half: true },
     { name: 'moradorEmail', label: 'E-mail', col: 'morador_email', type: 'text', half: true, maxLength: 150, placeholder: 'nome@email.com' },
     { name: 'moradorTelefone', label: 'Telefone', col: 'morador_telefone', type: 'text', half: true, maxLength: 20, placeholder: '(21) 90000-0000' },
