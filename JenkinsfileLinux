@@ -1,0 +1,130 @@
+// Pipeline do Frontend PropTech (Next.js 16, Node 22 na imagem) — agente LINUX (usa sh e docker compose).
+// Mesmo padrão do projeto HemoVida-estoque e do MS Moradores: checkout → validar compose → build → deploy → verificar.
+// O frontend NÃO tem segredos: as únicas variáveis (NEXT_PUBLIC_*) vão para o JavaScript que o navegador baixa.
+// Por isso elas ficam aqui no environment{} e não precisam do Infisical. Como são lidas NO BUILD, qualquer mudança
+// exige rodar o pipeline de novo (o --build/--force-recreate abaixo já reconstrói a imagem).
+// Para agente Windows existe o arquivo "Jenkinsfile".
+pipeline {
+    agent any
+
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    environment {
+        APP_NAME                 = 'proptech-frontend'   // = container_name do docker-compose.yml
+        APP_PORT                 = '7520'
+        NEXT_PUBLIC_BASE_PATH    = '/condominio'                    // site publicado em http://academico3.rj.senac.br/condominio
+        NEXT_PUBLIC_API_URL      = '/condominio/gateway/morador'    // MS Moradores, visto pelo navegador, via gateway
+    }
+
+    stages {
+
+        stage('Checkout GitHub') {
+            steps {
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/BeSenna/PropTech-FrontEnd'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Validar Docker Compose') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker compose config --quiet
+
+                    echo "Docker Compose validado."
+                '''
+            }
+        }
+
+        stage('Construir Imagem Docker') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker compose build
+
+                    echo "Imagem Docker construída."
+                '''
+            }
+        }
+
+        stage('Deploy Docker') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker compose up -d --no-build --force-recreate
+
+                    echo "Deploy executado."
+                '''
+            }
+        }
+
+        stage('Verificar Container') {
+            steps {
+                sh '''
+                    set -eu
+
+                    echo "Verificando container..."
+
+                    sleep 10
+
+                    RUNNING=$(docker inspect --format '{{.State.Running}}' "$APP_NAME")
+
+                    if [ "$RUNNING" != "true" ]; then
+                        echo "ERRO: Container não está rodando."
+                        docker logs --tail 50 "$APP_NAME" || true
+                        exit 1
+                    fi
+
+                    echo "Container em execução."
+                    docker compose ps
+
+                    echo "Versão do Node.js no container:"
+                    docker exec "$APP_NAME" node -v
+                '''
+                // Falha aqui deixa o build "instável" (amarelo), sem derrubar o deploy já feito.
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    sh '''
+                        docker exec "$APP_NAME" node -e "const t=async()=>{for(let i=0;i<10;i++){try{const r=await fetch('http://localhost:7520/condominio/login');if(r.ok){console.log('Frontend respondendo.');return}}catch(e){}await new Promise(r=>setTimeout(r,3000))}console.log('Frontend não respondeu a tempo.');process.exit(1)};t()" || {
+                            docker logs --tail 40 "$APP_NAME" || true
+                            exit 1
+                        }
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+
+        success {
+            echo '''
+            ====================================
+             FRONTEND - PROPTECH
+             DEPLOY EXECUTADO COM SUCESSO
+             PORTA: 7520
+            ====================================
+            '''
+        }
+
+        failure {
+            echo '''
+            ====================================
+             FRONTEND - PROPTECH
+             FALHA NA EXECUÇÃO DO PIPELINE
+            ====================================
+            '''
+        }
+    }
+}

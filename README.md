@@ -45,6 +45,12 @@ NEXT_PUBLIC_BASE_PATH=/condominio NEXT_PUBLIC_API_URL=/condominio/gateway/morado
 
 A imagem usa `output: 'standalone'` (`node server.js`, usuário não-root). O site responde em `http://<host>:7520/condominio/...`.
 
+### Deploy pelo Jenkins
+
+O repositório tem dois pipelines com o mesmo fluxo (padrão do HemoVida-estoque e do MS Moradores): **`JenkinsfileLinux`** (agente Linux, `sh` — usado no servidor) e **`Jenkinsfile`** (agente Windows, `bat`). O "Script Path" do job precisa apontar para o arquivo certo. Fluxo: checkout da branch `main` → `docker compose config` → `docker compose build` → `docker compose up -d --force-recreate` → confere se o container `proptech-frontend` está rodando e se `/condominio/login` responde.
+
+O frontend **não tem segredos**: `NEXT_PUBLIC_BASE_PATH` (`/condominio`) e `NEXT_PUBLIC_API_URL` (`/condominio/gateway/morador`) são gravadas no JavaScript do navegador e ficam no `environment {}` do pipeline, sem Infisical nem `.env`. Para mudar, edite o pipeline e rode o job de novo (são lidas no build).
+
 Fluxo esperado em produção: navegador → proxy da Senac → `/condominio` (frontend, 7520) e `/condominio/gateway` (gateway, 7521) → `/morador/*` repassado ao MS Moradores (7522, `/condominio/morador/*`). O gateway precisa repassar o header `Authorization`, os métodos PATCH/DELETE e os corpos de erro (401/400) sem alterar.
 
 Outros comandos: `npm run build`, `npm run lint`, `npm run typecheck`.
