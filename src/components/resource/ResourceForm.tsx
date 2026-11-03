@@ -4,8 +4,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/components/ui";
 import { useToast } from "@/components/Toast";
-import { limparCache } from "@/resources/api";
-import type { FieldDef, Option, Rec, ResourceConfig } from "@/lib/types";
+import { limparCache } from "@/services/moradorService";
+import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const moneyToNumber = (s: unknown) => Number(String(s).replace(/\./g, "").replace(",", "."));
@@ -52,8 +52,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     return () => {
       vivo = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg, mode, id]);
+  }, [cfg, mode, id, sp]);
 
   useEffect(() => {
     let vivo = true;

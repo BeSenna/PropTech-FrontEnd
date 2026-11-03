@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { btn, Card, cx, Empty, ErrorBox, inputAutoCls, Loading, MockTag, PageHeader, searchCls } from "@/components/ui";
-import type { Option, Rec, ResourceConfig } from "@/lib/types";
+import type { Option, Rec, ResourceConfig } from "@/models/types";
 
 const PAGE_SIZE = 10;
 type Filters = Record<string, string | number | undefined>;
@@ -25,7 +25,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   const [loading, setLoading] = useState(true);
   const [erro, setErro] = useState("");
 
-  const chips = cfg.chips ?? [{ label: "Todos", filters: {} }];
+  const chips = useMemo(() => cfg.chips ?? [{ label: "Todos", filters: {} }], [cfg]);
   const local = !!cfg.localFilterKeys?.length;
   const buscaUrl = sp.get("busca");
 
@@ -75,7 +75,19 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
     };
   }, [cfg]);
 
+  // Cada consulta recebe um número. Se outra começar antes desta terminar (busca digitada, troca de página),
+  // a resposta antiga é descartada e não sobrescreve a mais nova (mesma ideia do "consultaCancelada" da apostila).
+  const consulta = useRef(0);
+  useEffect(() => {
+    const atual = consulta;
+    return () => {
+      atual.current++; // ao sair da tela, descarta qualquer resposta pendente
+    };
+  }, []);
+
   const carregar = useCallback(async () => {
+    const minha = ++consulta.current;
+    const valida = () => minha === consulta.current;
     setLoading(true);
     setErro("");
     try {
@@ -86,6 +98,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         for (const [k, v] of Object.entries(ativo)) if (!cfg.localFilterKeys!.includes(k)) apiOnly[k] = v;
         const r = await cfg.adapter.list({ page: 1, pageSize: 500, busca: buscaAtiva || undefined, filters: apiOnly });
         const todos = cfg.enrich ? await cfg.enrich(r.data) : r.data;
+        if (!valida()) return;
         const passa = (row: Rec, f: Filters) => Object.entries(f).every(([k, v]) => v === undefined || !cfg.localFilterKeys!.includes(k) || cfg.localFilter!(row, k, v));
         const filtrados = todos.filter((row) => passa(row, ativo));
         setCounts(chips.map((c) => todos.filter((row) => passa(row, c.filters)).length));
@@ -93,21 +106,24 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         setRows(filtrados.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE));
       } else {
         const r = await cfg.adapter.list({ page, pageSize: PAGE_SIZE, busca: buscaAtiva || undefined, filters: { ...baseFilters, ...ativo } });
+        const dados = cfg.enrich ? await cfg.enrich(r.data) : r.data;
+        if (!valida()) return;
         setTotal(r.total);
-        setRows(cfg.enrich ? await cfg.enrich(r.data) : r.data);
+        setRows(dados);
         if (chips.length > 1) {
           const cs = await Promise.all(chips.map((c) => cfg.adapter.list({ page: 1, pageSize: 1, busca: buscaAtiva || undefined, filters: { ...baseFilters, ...c.filters } }).then((x) => x.total)));
+          if (!valida()) return;
           setCounts(cs);
         }
       }
     } catch (e) {
+      if (!valida()) return;
       setErro((e as Error).message);
       setRows([]);
     } finally {
-      setLoading(false);
+      if (valida()) setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cfg, chip, page, buscaAtiva, baseFilters, local]);
+  }, [cfg, chips, chip, page, buscaAtiva, baseFilters, local]);
 
   useEffect(() => {
     void carregar();

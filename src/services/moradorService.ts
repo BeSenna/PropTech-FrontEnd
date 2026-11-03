@@ -1,6 +1,6 @@
 // Adaptadores do MS Moradores (API real) + consultas auxiliares usadas em selects e listagens.
-import { http } from '../lib/http';
-import type { Adapter, ListParams, Option, Paged, Rec } from '../lib/types';
+import { http } from '@/services/http';
+import type { Adapter, ListParams, Option, Paged, Rec } from '@/models/types';
 
 export function makeApiAdapter(path: string): Adapter {
   return {
@@ -23,6 +23,9 @@ export const usuarioApi = makeApiAdapter('/usuario');
 
 export const encerrarVinculo = (id: number, dataFim: string) =>
   http(`/morador-imovel/${id}/encerrar`, { method: 'PATCH', body: { moradorImovelDataFim: dataFim } });
+
+export const criarUsuario = (dados: { usuarioLogin: string; senha: string; usuarioPerfil: 'SINDICO' | 'MORADOR'; moradorImovelId?: number }) =>
+  http('/usuario', { method: 'POST', body: dados });
 
 export const trocarSenha = (id: number, novaSenha: string) =>
   http(`/usuario/${id}/senha`, { method: 'PATCH', body: { novaSenha } });

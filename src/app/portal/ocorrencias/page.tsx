@@ -1,5 +1,5 @@
 "use client";
-import { PortalOcorrencias } from "@/components/pages/Portal";
+import { PortalOcorrencias } from "@/components/portal/PortalOcorrencias";
 export default function Page() {
   return <PortalOcorrencias />;
 }

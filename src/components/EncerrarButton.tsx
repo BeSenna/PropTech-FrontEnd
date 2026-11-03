@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { ConfirmModal } from './Modal';
 import { btn, inputCls } from './ui';
 import { useToast } from './Toast';
-import { encerrarVinculo, limparCache } from '../resources/api';
-import { hoje } from '../lib/format';
-import type { Rec } from '../lib/types';
+import { encerrarVinculo, limparCache } from '@/services/moradorService';
+import { hoje } from '@/lib/format';
+import type { Rec } from '@/models/types';
 
 // Encerra o vínculo (PATCH /morador-imovel/:id/encerrar). O estado ATIVO/ENCERRANDO/ENCERRADO é derivado da data.
 export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }) {

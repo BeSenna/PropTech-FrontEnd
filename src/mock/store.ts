@@ -1,7 +1,7 @@
 // Armazenamento simulado (localStorage) para os módulos Financeiro e Serviços,
 // cujos microsserviços ainda não existem. Mesma interface (Adapter) da API real,
 // então trocar por chamadas HTTP depois não muda nenhuma tela.
-import type { Adapter, ListParams, Paged, Rec } from '../lib/types';
+import type { Adapter, ListParams, Paged, Rec } from '../models/types';
 
 const PREFIX = 'proptech.mock.v1.';
 const memoria = new Map<string, Rec[]>();

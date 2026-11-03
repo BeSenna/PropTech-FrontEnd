@@ -1,4 +1,4 @@
-import type { Rec } from '../lib/types';
+import type { Rec } from '../models/types';
 import { createMock } from './store';
 
 // Dados de demonstração (os mesmos exemplos do protótipo no Figma).

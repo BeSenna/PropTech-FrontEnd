@@ -1,5 +1,5 @@
 "use client";
-import { PortalHome } from "@/components/pages/Portal";
+import { PortalHome } from "@/components/portal/PortalHome";
 export default function Page() {
   return <PortalHome />;
 }

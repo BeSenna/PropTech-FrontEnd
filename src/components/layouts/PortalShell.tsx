@@ -6,8 +6,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { useAuth } from "@/auth/AuthContext";
 import { ErrorBox, Loading, cx } from "@/components/ui";
 import { iniciais } from "@/lib/format";
-import type { Rec } from "@/lib/types";
-import { blocoLetra, imovelRotulo, moradorApi } from "@/resources/api";
+import type { Rec } from "@/models/types";
+import { blocoLetra, imovelRotulo, moradorApi } from "@/services/moradorService";
 import { semearPortal } from "@/mock/data";
 
 export interface PortalCtx {

@@ -1,5 +1,5 @@
 "use client";
-import { PortalAvisos } from "@/components/pages/Portal";
+import { PortalAvisos } from "@/components/portal/PortalAvisos";
 export default function Page() {
   return <PortalAvisos />;
 }

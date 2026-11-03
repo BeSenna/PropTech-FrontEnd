@@ -5,8 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Badge, btn, Card, DetailGrid, ErrorBox, Hero, HeroBadges, KV, Loading, PageHeader, RelatedList } from "@/components/ui";
 import { ConfirmModal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
-import { limparCache } from "@/resources/api";
-import type { Rec, RelatedPanel, ResourceConfig } from "@/lib/types";
+import { limparCache } from "@/services/moradorService";
+import type { Rec, RelatedPanel, ResourceConfig } from "@/models/types";
 
 export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: string }) {
   const toast = useToast();
@@ -16,20 +16,30 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
   const [confirmando, setConfirmando] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  const carregar = useCallback(async () => {
-    try {
-      const r = await cfg.adapter.get(id);
-      setRow(r);
-      setRel((await cfg.related?.(r, {})) ?? null);
-    } catch (e) {
-      setErro((e as Error).message);
-    }
-  }, [cfg, id]);
+  // `vivo()` vira falso quando a tela sai ou o registro muda: a resposta antiga é descartada.
+  const carregar = useCallback(
+    async (vivo: () => boolean) => {
+      try {
+        const r = await cfg.adapter.get(id);
+        const painel = (await cfg.related?.(r, {})) ?? null;
+        if (!vivo()) return;
+        setRow(r);
+        setRel(painel);
+      } catch (e) {
+        if (vivo()) setErro((e as Error).message);
+      }
+    },
+    [cfg, id],
+  );
 
   useEffect(() => {
+    let vivo = true;
     setRow(null);
     setErro("");
-    void carregar();
+    void carregar(() => vivo);
+    return () => {
+      vivo = false;
+    };
   }, [carregar]);
 
   if (erro) return <ErrorBox>{erro}</ErrorBox>;
@@ -44,7 +54,7 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
       limparCache();
       toast(`${cfg.inactivate.label === "Desativar" ? "Desativado" : "Atualizado"} com sucesso.`);
       setConfirmando(false);
-      await carregar();
+      await carregar(() => true);
     } catch (e) {
       toast((e as Error).message, "erro");
     } finally {
@@ -76,7 +86,7 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
                 {a.label}
               </Link>
             ))}
-            {cfg.extraDetail?.(row, () => void carregar())}
+            {cfg.extraDetail?.(row, () => void carregar(() => true))}
             {ativo && (
               <button type="button" className={btn("glass")} onClick={() => setConfirmando(true)}>
                 {cfg.inactivate.label}

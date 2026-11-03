@@ -1,14 +1,9 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { getToken, http, setToken, setUnauthorizedHandler } from "@/lib/http";
-
-export interface SessionUser {
-  usuarioId: number;
-  usuarioLogin: string;
-  usuarioPerfil: "SINDICO" | "MORADOR";
-  moradorId: number | null;
-}
+import { getToken, setToken, setUnauthorizedHandler } from "@/services/http";
+import { entrar, sessaoAtual } from "@/services/authService";
+import type { SessionUser } from "@/models/sessao";
 
 interface AuthState {
   user: SessionUser | null;
@@ -58,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (salvo) setUser(salvo);
       if (salvo) {
         try {
-          const me = await http<{ usuarioId: number; moradorId: number | null; usuarioPerfil: "SINDICO" | "MORADOR" }>("/auth/me");
+          const me = await sessaoAtual();
           if (vivo) setUser({ ...salvo, usuarioPerfil: me.usuarioPerfil, moradorId: me.moradorId });
         } catch (e) {
           if (vivo && (e as { status?: number }).status === 401) logout();
@@ -72,10 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [logout]);
 
   const login = useCallback(async (usuarioLogin: string, senha: string) => {
-    const r = await http<{ accessToken: string; usuario: SessionUser }>("/auth/login", {
-      method: "POST",
-      body: { usuarioLogin, senha },
-    });
+    const r = await entrar(usuarioLogin, senha);
     setToken(r.accessToken);
     try {
       localStorage.setItem(USER_KEY, JSON.stringify(r.usuario));

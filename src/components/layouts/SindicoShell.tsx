@@ -6,7 +6,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { cx, searchCls } from "@/components/ui";
 import { iniciais } from "@/lib/format";
-import { totalDe } from "@/resources/api";
+import { totalDe } from "@/services/moradorService";
 import { areaStore, avisoStore, cobrancaStore, despesaStore, manutencaoStore, ocorrenciaStore, pagamentoStore, receitaStore, reservaStore } from "@/mock/data";
 
 const ROTULOS: Record<string, string> = {
@@ -154,7 +154,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-5 flex h-16 items-center gap-3 border-b border-line bg-white px-4 min-[820px]:px-7">
           <nav className="flex flex-wrap gap-1.5 text-[13px] font-bold" aria-label="Você está em">
             {crumbs.map((c, i) => (
-              <span key={i} className="contents">
+              <span key={c.label} className="contents">
                 {i > 0 && <span className="font-medium text-muted-2">/</span>}
                 {c.to ? (
                   <Link href={c.to} className="hover:underline">

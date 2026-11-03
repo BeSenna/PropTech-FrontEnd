@@ -1,28 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ErrorBox, MockTag, ModuleCard, ModuleGrid, PageHeader, SectionLabel, StatCard, StatGrid } from "@/components/ui";
 import { fmtMoney } from "@/lib/format";
-import { totalDe } from "@/resources/api";
+import { useStatsMoradores } from "@/hooks/useStatsMoradores";
 import { areaStore, avisoStore, cobrancaStore, despesaStore, ocorrenciaStore, pagamentoStore, receitaStore, reservaStore } from "@/mock/data";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const soma = (xs: { [k: string]: any }[], k: string) => xs.reduce((s, r) => s + Number(r[k] || 0), 0);
-
-function useStatsMoradores() {
-  const [s, setS] = useState<number[] | null>(null);
-  const [erro, setErro] = useState("");
-  useEffect(() => {
-    let vivo = true;
-    Promise.all([totalDe("/bloco"), totalDe("/imovel", { status: 1 }), totalDe("/morador", { status: 1 }), totalDe("/morador-imovel")])
-      .then((r) => vivo && setS(r))
-      .catch((e) => vivo && setErro((e as Error).message));
-    return () => {
-      vivo = false;
-    };
-  }, []);
-  return { s, erro };
-}
 
 const CAD_MODULES = (
   <ModuleGrid>

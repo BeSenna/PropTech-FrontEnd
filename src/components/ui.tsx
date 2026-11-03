@@ -160,8 +160,8 @@ export function RelatedList({ title, items, footer }: { title: string; items: { 
   return (
     <Card title={title} count={items.length}>
       {items.length === 0 && <Empty>Nada vinculado ainda.</Empty>}
-      {items.map((it, i) => (
-        <RowItem key={i} ico={it.icon} title={it.title} sub={it.sub} to={it.to} />
+      {items.map((it) => (
+        <RowItem key={it.to ?? `${it.title}|${it.sub}`} ico={it.icon} title={it.title} sub={it.sub} to={it.to} />
       ))}
       {footer && (
         <Link href={footer.to} className="flex items-center justify-between border-t border-line-soft px-5 py-3.5 text-[12.5px] font-bold text-primary">
