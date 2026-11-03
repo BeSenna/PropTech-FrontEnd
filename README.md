@@ -97,18 +97,16 @@ O `.env.local` já vem pronto para desenvolvimento (veja [Variáveis de ambiente
 npm run dev
 ```
 
-Abra <http://localhost:3000/login>.
+Abra <http://localhost:3000/login>. Use **`localhost`** (e não `127.0.0.1`): em desenvolvimento o Next.js pode bloquear a página aberta por outro endereço.
 
 > Em desenvolvimento, o próprio Next.js faz o papel do gateway: ele encaminha `/condominio/gateway/morador/*` para o backend em `http://localhost:7522` (variável `API_PROXY_TARGET`). Por isso o backend tem que estar no ar.
 
 ### Passo 5 — Entre
 
-Escolha o botão do seu perfil e informe o usuário e a senha:
+Informe usuário e senha e clique em **Entrar**. O botão é um só: o sistema reconhece o perfil pela conta e abre a área certa.
 
-- **Síndico:** usuário `admin` e a `ADMIN_SENHA` do backend → botão **Entrar como Síndico(a)**.
-- **Morador:** a conta criada pelo síndico (veja a [seção 5](#5-como-testar-roteiro-de-5-minutos)) → botão **Entrar como Morador**.
-
-O botão precisa corresponder ao perfil da conta. Se não corresponder, aparece "Esta conta é de síndico(a). Use o botão…".
+- **Síndico:** usuário `admin` e a `ADMIN_SENHA` do backend → cai no painel.
+- **Morador:** a conta criada pelo síndico (veja a [seção 5](#5-como-testar-roteiro-de-5-minutos)) → cai no Portal do Morador.
 
 ---
 
@@ -142,7 +140,9 @@ Com o backend e o frontend no ar:
    - Use, por exemplo, `529.982.247-25` (válido).
    - `111.111.111-11` e `529.982.247-24` são recusados.
 5. **Relação → Nova relação:** ligue o morador ao imóvel (tipo Proprietário, data de início) e ative **"Conceder acesso ao Portal do Morador"**. Informe um login e uma senha de 8+ caracteres. Isso cria a conta do morador já vinculada.
-6. Saia (botão **Sair**, no canto inferior do menu lateral) e entre com essa conta pelo botão **Entrar como Morador**.
+
+   > **Alternativa:** se a relação já existe sem login, vá em **Usuários → Novo**, escolha o perfil **MORADOR**, selecione a relação no campo **Relação** e defina login e senha. A relação precisa estar ativa e sem conta. A ligação só é feita **na criação** da conta.
+6. Saia (botão **Sair**, no canto inferior do menu lateral) e entre com essa conta, na mesma tela de login.
 7. No portal, abra **Meu Imóvel**: deve aparecer o imóvel que você vinculou.
 8. Como morador, tente abrir uma URL do painel do síndico (ex.: `/blocos`): você é redirecionado. O morador só enxerga os próprios dados.
 
@@ -219,7 +219,7 @@ As variáveis (`NEXT_PUBLIC_BASE_PATH=/condominio` e `NEXT_PUBLIC_API_URL=/condo
 | `npm install` | Instala as dependências |
 | `npm run dev` | Servidor de desenvolvimento (porta 3000, recarrega sozinho) |
 | `npm run build` | Gera o build de produção |
-| `npm start` | Roda o build de produção (porta 7520) |
+| `npm start` | Roda o build de produção (porta 7520; o Next avisa que o modo `standalone` prefere `node .next/standalone/server.js`, mas funciona) |
 | `npm run lint` | Verifica o estilo do código |
 | `npm run typecheck` | Verifica os tipos do TypeScript |
 | `docker compose up -d --build` | Gera a imagem e sobe o container (porta 7520) |
@@ -229,46 +229,51 @@ As variáveis (`NEXT_PUBLIC_BASE_PATH=/condominio` e `NEXT_PUBLIC_API_URL=/condo
 
 ## 9. Estrutura do código
 
+O projeto segue a organização sugerida nas aulas de React: **a página coordena, os componentes apresentam e o service comunica**.
+
 ```
 src/
-  app/                     rotas (App Router)
-    login/                 /login
-    (sindico)/             painel do síndico (layout com guarda de perfil)
-      page.tsx             dashboard
-      cadastros|financeiro|servicos/   visões gerais
-      [recurso]/           lista · novo · [id] · [id]/editar (blocos, imoveis, moradores, ...)
-    portal/                Portal do Morador (layout com guarda de perfil)
-  auth/                    AuthContext (JWT, sessão revalidada em /auth/me)
+  app/                     rotas (App Router): login, (sindico)/, portal/
+  auth/                    AuthContext (sessão e JWT)
   components/
-    ui.tsx                 peças visuais + classes Tailwind compartilhadas (btn, input…)
+    ui.tsx                 peças visuais + classes Tailwind compartilhadas
     layouts/               SindicoShell, PortalShell, RequireRole
     resource/              ResourceList / Form / Detail (genéricos, guiados por configuração)
-    pages/                 Login, Overviews, Portal
-  lib/                     http (fetch + erros + JWT), format (CPF, datas), types
+    pages/                 Login, Overviews
+    portal/                telas do Portal do Morador (uma por arquivo)
+  hooks/                   hooks próprios (useStatsMoradores)
+  lib/                     format (CPF, datas, dinheiro), labels
   mock/                    store (localStorage) + dados de demonstração
-  resources/               moradores.tsx (API real) · simulados.tsx (mock) · api.ts · index.ts
+  models/                  types (formato dos dados e das configurações), sessao
+  resources/               configuração de cada recurso (moradores/ = API real, simulados/ = mock)
+  services/                http (fetch, erros, JWT), authService, moradorService (chamadas à API)
 ```
 
 **Como as telas nascem:** as telas de lista, novo, detalhe e editar são **genéricas**. Cada recurso (bloco, imóvel, morador…) é descrito por uma configuração (`ResourceConfig`): campos, colunas, filtros e como converter o formulário em dados da API.
 
 **Para adicionar um recurso novo:**
-1. Crie o `ResourceConfig` em `src/resources/`.
-2. Inclua em `RESOURCES` (`src/resources/index.ts`).
+1. Crie o `ResourceConfig` em `src/resources/moradores/` (API real) ou `src/resources/simulados/` (mock).
+2. Exporte no `index.ts` da pasta e inclua em `RESOURCES` (`src/resources/index.ts`).
 3. As quatro telas aparecem sozinhas nas rotas `[recurso]`.
 
-**Trocar um mock pela API real:** os mocks e a API usam a mesma interface (`Adapter`, em `src/resources/api.ts` e `src/mock/store.ts`). Troque o adaptador do recurso e nenhuma tela precisa mudar.
+**Trocar um mock pela API real:** os mocks e a API usam a mesma interface (`Adapter`, em `src/services/moradorService.ts` e `src/mock/store.ts`). Troque o adaptador do recurso e nenhuma tela precisa mudar.
 
 ---
 
 ## 10. Como funciona por dentro
 
-- **Sessão:** o login devolve um JWT, guardado no `localStorage` (`proptech.token`). A sessão é revalidada em `/auth/me`.
+- **Sessão:** o login devolve um JWT, guardado no `localStorage` (`proptech.token`). A sessão é revalidada em `/auth/me`. As chamadas de login e sessão ficam em `src/services/authService.ts`.
+- **Perfil pela conta:** não existe escolha de perfil na tela de login. A API devolve o perfil da conta, e o front só redireciona: síndico para o painel, morador para o portal.
 - **Erro 401:** qualquer resposta 401 (token vencido ou usuário desativado — o backend consulta o banco a cada requisição) encerra a sessão e volta ao login.
 - **Guarda de perfil:** as áreas do síndico e do morador só renderizam depois de a sessão ser lida no navegador (por isso não há erro de hidratação). Um perfil não acessa a área do outro.
 - **Privacidade (LGPD):** no backend, a lista de moradores e a de relações são só do síndico. O Portal do Morador lê apenas o **próprio** cadastro (`GET /morador/:id` com o `moradorId` da sessão); qualquer outro id devolve 403.
 - **CPF:** o formulário confere os dígitos verificadores antes de enviar (`cpfValido`, em `src/lib/format.ts`, mesma regra do backend). Se estiver errado, o aviso aparece e nada é enviado à API.
-- **Validação própria por campo:** `validate` em `FieldDef` (`src/lib/types.ts`) roda antes do envio; a mensagem aparece no topo do formulário.
-- **Editar com campos vazios:** ao salvar uma edição com e-mail, telefone ou data limpos, o front envia `null`, e o backend limpa o campo.
+- **Validação própria por campo:** `validate` em `FieldDef` (`src/models/types.ts`) roda antes do envio; a mensagem aparece no topo do formulário. A senha de usuário, por exemplo, exige 8+ caracteres.
+- **Campos condicionais:** `visibleWhen` em `FieldDef` mostra um campo só quando a condição vale (ex.: o campo **Relação** de Usuários → Novo só aparece para o perfil MORADOR). Campo escondido não é validado nem enviado.
+- **Conta ligada à relação:** a conta de um morador fica ligada a uma **relação**. Essa ligação só é feita na criação da conta (por "Conceder acesso" na relação ou pelo campo **Relação** em Usuários → Novo); o backend não religa depois.
+- **Editar com campos vazios:** ao salvar uma edição com campos opcionais limpos (e-mail, telefone, datas, matrícula…), o front envia `null`, e o backend limpa o campo.
+- **Consultas que chegam fora de ordem:** as listas e o detalhe descartam a resposta de uma consulta que já foi substituída por outra (por exemplo, ao digitar rápido na busca). A busca espera 300 ms antes de consultar a API.
+- **Datas:** o "hoje" usado nos formulários é o do fuso do navegador (e não o UTC), para não virar o dia depois das 21h no horário de Brasília.
 - **Fonte:** a Inter vem do Google Fonts; sem internet o navegador usa a fonte do sistema.
 
 ---
@@ -277,16 +282,17 @@ src/
 
 | Sintoma | Causa provável | O que fazer |
 |---|---|---|
-| Login: "Não foi possível falar com a API. Verifique se o MS Moradores está rodando." (em `npm run dev`) | Backend desligado, ou `API_PROXY_TARGET` ausente no `.env.local` | Suba o backend (`npx nest start`) e confira `API_PROXY_TARGET=http://localhost:7522`; reinicie o `npm run dev` |
+| Login: "API indisponível (erro 500). Verifique se o MS Moradores está no ar." ou "Não foi possível falar com a API…" | Backend desligado, ou `API_PROXY_TARGET` ausente no `.env.local` | Suba o backend (`npx nest start`) e confira `API_PROXY_TARGET=http://localhost:7522`; reinicie o `npm run dev` |
 | Login: "Login ou senha inválidos" | Usuário ou senha errados | Use `admin` e a `ADMIN_SENHA` do backend. O síndico só é criado se ainda não existir um |
-| "Esta conta é de síndico(a). Use o botão…" | Botão do perfil errado | Use "Entrar como Síndico(a)" ou "Entrar como Morador" conforme a conta |
-| "Esta conta ainda não está vinculada a um morador" (portal) | A conta foi criada sem relação | O síndico cria o acesso em **Relação → Nova relação → Conceder acesso**, ou vincula a conta a uma relação |
+| "Esta conta ainda não está vinculada a um morador" (portal) | A conta de morador foi criada sem relação | Crie o acesso em **Relação → Nova relação → Conceder acesso**, ou em **Usuários → Novo** escolhendo a **Relação**. Uma conta que já foi criada solta não pode ser ligada depois: crie outro login já ligado à relação e desative o antigo |
 | "CPF inválido" ao cadastrar | CPF com dígito verificador errado | Use um CPF válido, ex.: `529.982.247-25` |
+| "A senha deve ter pelo menos 8 caracteres." | Senha curta ao criar usuário ou ao trocar a senha | Use 8 caracteres ou mais |
 | `http://localhost:3000/login` dá 404 | `NEXT_PUBLIC_BASE_PATH=/condominio` no `.env.local` | Deixe vazio (ou acesse `/condominio/login`) e reinicie o `npm run dev` |
+| A tela carrega, mas os botões não respondem (em dev) | Página aberta por `127.0.0.1`, que o Next.js em desenvolvimento pode bloquear | Abra por `http://localhost:3000` |
 | Mudei uma variável `NEXT_PUBLIC_*` e nada mudou | Elas são lidas no build | Reinicie o `npm run dev` ou rode `docker compose up -d --build` |
 | `port is already allocated` / `EADDRINUSE` | Porta 3000 (dev) ou 7520 (Docker) ocupada | Veja quem usa: `ss -ltnp \| grep 7520`; pare o processo ou o container (`docker ps`, `docker stop NOME`) |
 | `Please either run infisical init…` ao subir o Docker | Foi usado `npx infisical run` — o front não usa Infisical | Rode só `docker compose up -d --build` |
-| Container sobe, mas o login mostra "Não foi possível falar com a API" | A imagem não tem o proxy de desenvolvimento; o gateway não está acessível | Em teste local use `npm run dev`; em produção confira o gateway |
+| Container sobe, mas o login mostra erro de conexão com a API | A imagem não tem o proxy de desenvolvimento; o gateway não está acessível | Em teste local use `npm run dev`; em produção confira o gateway |
 | Em produção: 401 após o login, ou PATCH/DELETE falham | O gateway não repassa `Authorization` ou bloqueia os métodos | Corrija no gateway (veja a [seção 1](#1-como-o-sistema-se-encaixa)) |
 | Mensagens de erro da API não aparecem | O gateway troca o corpo das respostas de erro | O gateway precisa repassar os corpos 400/401/403 sem alterar |
 | Dados do Financeiro/Serviços sumiram | São simulados e ficam no navegador | Normal ao trocar de navegador ou limpar os dados do site |
