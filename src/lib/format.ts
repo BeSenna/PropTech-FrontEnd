@@ -67,4 +67,8 @@ export const competenciaTxt = (iso?: string | null) => {
   return `${nomes[Number(m[2]) - 1]}/${m[1]}`;
 };
 
-export const hoje = () => new Date().toISOString().slice(0, 10);
+// Data de hoje no fuso do navegador (toISOString usa UTC: no Brasil, depois das 21h já devolveria o dia seguinte).
+export const hoje = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
