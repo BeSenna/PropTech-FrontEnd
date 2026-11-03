@@ -43,7 +43,8 @@ export default function Login() {
           </div>
         </div>
         <h1 className="m-0 mt-2 text-[22px] font-extrabold text-navy">Entrar no PropTech</h1>
-        <p className="mt-1 mb-[18px] text-[12.5px] text-muted">Use seu login e senha. O sistema abre a área correta para o seu perfil.</p>
+        <p className="mt-1 mb-[18px] text-[12.5px] text-muted"></p>
+        {/*<p className="mt-1 mb-[18px] text-[12.5px] text-muted">Use seu login e senha. O sistema abre a área correta para o seu perfil.</p>*/}
         {erro && <ErrorBox>{erro}</ErrorBox>}
         <form onSubmit={enviar} className="grid gap-4">
           <div className="flex flex-col gap-[7px]">
