@@ -114,12 +114,12 @@ export function PortalImovel() {
           <DetailGrid>
             <Card title="Dados do imóvel">
               {[
-                ["imovel_numero", im?.imovelNumero],
-                ["imovel_andar", im?.imovelAndar ?? "—"],
-                ["bloco_id", p.blocoNome],
-                ["imovel_tipo", im?.imovelTipo],
-                ["imovel_area_m2", im?.imovelAreaM2 ? `${Number(im.imovelAreaM2).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} m²` : "—"],
-                ["imovel_garagem", im?.imovelGaragem ?? "—"],
+                ["Número", im?.imovelNumero],
+                ["Andar", im?.imovelAndar ?? "—"],
+                ["Bloco", p.blocoNome],
+                ["Tipo", im?.imovelTipo],
+                ["Área", im?.imovelAreaM2 ? `${Number(im.imovelAreaM2).toLocaleString("pt-BR", { minimumFractionDigits: 2 })} m²` : "—"],
+                ["Vagas de garagem", im?.imovelGaragem ?? "—"],
               ].map(([k, val]) => (
                 <KV k={String(k)} key={String(k)}>
                   {String(val ?? "—")}
@@ -184,10 +184,10 @@ export function PortalNovaReserva() {
   };
   return (
     <>
-      <PageHeader title="Nova Reserva" sub="reserva" />
+      <PageHeader title="Nova Reserva" sub="Escolha a área, a data e o horário." />
       <form onSubmit={enviar} noValidate>
         <FormCard title="Dados da reserva" erro={erro} onCancel={() => router.back()} submit="Solicitar reserva">
-          <Campo id="a" label="Área comum · area_comum_id">
+          <Campo id="a" label="Área comum">
             <select id="a" className={inputCls} value={v.area} onChange={(e) => set("area", e.target.value)}>
               {areas.map((a) => (
                 <option key={a.id} value={a.id}>
@@ -196,7 +196,7 @@ export function PortalNovaReserva() {
               ))}
             </select>
           </Campo>
-          <Campo id="d" label="Data da reserva · reserva_data_reserva">
+          <Campo id="d" label="Data da reserva">
             <input id="d" type="date" className={inputCls} value={v.data} onChange={(e) => set("data", e.target.value)} />
           </Campo>
           <Campo id="i" label="Horário início" half>
@@ -205,7 +205,7 @@ export function PortalNovaReserva() {
           <Campo id="f" label="Horário fim" half>
             <input id="f" type="time" className={inputCls} value={v.fim} onChange={(e) => set("fim", e.target.value)} />
           </Campo>
-          <div className="col-span-full text-[11.5px] text-muted">🔒 reserva_morador_id é preenchido automaticamente com base no seu login — você não escolhe outro morador.</div>
+          <div className="col-span-full text-[11.5px] text-muted">🔒 A reserva é registrada automaticamente no seu nome.</div>
         </FormCard>
       </form>
     </>
@@ -251,16 +251,16 @@ export function PortalNovaOcorrencia() {
   };
   return (
     <>
-      <PageHeader title="Abrir Ocorrência" sub="ocorrencia" />
+      <PageHeader title="Abrir Ocorrência" sub="Conte ao síndico o que precisa de atenção." />
       <form onSubmit={enviar} noValidate>
         <FormCard title="Descreva o problema" erro={erro} onCancel={() => router.back()} submit="Enviar ocorrência">
-          <Campo id="t" label="Título · ocorrencia_titulo">
+          <Campo id="t" label="Título">
             <input id="t" className={inputCls} value={v.titulo} placeholder="Ex.: Vazamento no teto da garagem" onChange={(e) => setV((x) => ({ ...x, titulo: e.target.value }))} />
           </Campo>
-          <Campo id="ds" label="Descrição · ocorrencia_descricao">
+          <Campo id="ds" label="Descrição">
             <textarea id="ds" className={`${inputCls} min-h-[84px] resize-y`} value={v.desc} placeholder="Descreva com detalhes o que está acontecendo" onChange={(e) => setV((x) => ({ ...x, desc: e.target.value }))} />
           </Campo>
-          <div className="col-span-full text-[11.5px] text-muted">🔒 ocorrencia_morador_id é preenchido automaticamente com base no seu login.</div>
+          <div className="col-span-full text-[11.5px] text-muted">🔒 A ocorrência é registrada automaticamente no seu nome.</div>
         </FormCard>
       </form>
     </>
@@ -337,10 +337,10 @@ export function PortalCobranca() {
       <DetailGrid>
         <Card title="Dados da cobrança">
           {[
-            ["cobranca_descricao", c.cobranca_descricao],
-            ["cobranca_competencia", fmtDate(c.cobranca_competencia)],
-            ["cobranca_vencimento", fmtDate(c.cobranca_vencimento)],
-            ["cobranca_tipo", c.cobranca_tipo],
+            ["Descrição", c.cobranca_descricao],
+            ["Competência", fmtDate(c.cobranca_competencia)],
+            ["Vencimento", fmtDate(c.cobranca_vencimento)],
+            ["Situação", c.cobranca_tipo],
           ].map(([k, v]) => (
             <KV k={k} key={k}>
               {v}
@@ -348,8 +348,8 @@ export function PortalCobranca() {
           ))}
         </Card>
         <Card title="Boleto">
-          <KV k="boleto_linha_digitavel">{c.boleto_linha_digitavel}</KV>
-          <KV k="boleto_data_emissao">{fmtDate(c.boleto_data_emissao)}</KV>
+          <KV k="Linha digitável">{c.boleto_linha_digitavel}</KV>
+          <KV k="Emissão do boleto">{fmtDate(c.boleto_data_emissao)}</KV>
         </Card>
       </DetailGrid>
     </>

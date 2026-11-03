@@ -37,7 +37,7 @@ export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }
       {open && (
         <ConfirmModal title="Encerrar vínculo" text="Informe a data de fim. Se for futura, o vínculo fica ENCERRANDO até lá." confirmLabel="Encerrar" busy={busy} onConfirm={confirmar} onCancel={() => setOpen(false)}>
           <div className="mb-[18px] flex flex-col gap-[7px]">
-            <label htmlFor="df" className="text-[11.5px] font-bold text-ink-2">Data de fim · morador_imovel_data_fim</label>
+            <label htmlFor="df" className="text-[11.5px] font-bold text-ink-2">Data de fim</label>
             <input id="df" className={inputCls} type="date" value={data} min={String(row.moradorImovelDataInicio).slice(0, 10)} onChange={(e) => setData(e.target.value)} />
           </div>
         </ConfirmModal>

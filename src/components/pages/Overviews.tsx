@@ -26,10 +26,10 @@ function useStatsMoradores() {
 
 const CAD_MODULES = (
   <ModuleGrid>
-    <ModuleCard icon="🏢" title="Blocos" desc="bloco — nome, descrição, status" to="/blocos" tint="#eef2fb" />
-    <ModuleCard icon="🏠" title="Imóveis" desc="imovel — tipo, matrícula, IPTU" to="/imoveis" tint="#d1fae5" />
-    <ModuleCard icon="👤" title="Moradores" desc="morador — dados pessoais e contato" to="/moradores" tint="#fef3c7" />
-    <ModuleCard icon="🔗" title="Relação" desc="morador_imovel — tipo, vigência" to="/vinculos" tint="#fce7f3" />
+    <ModuleCard icon="🏢" title="Blocos" desc="Nome, descrição, status" to="/blocos" tint="#eef2fb" />
+    <ModuleCard icon="🏠" title="Imóveis" desc="Tipo, matrícula, IPTU" to="/imoveis" tint="#d1fae5" />
+    <ModuleCard icon="👤" title="Moradores" desc="Dados pessoais e contato" to="/moradores" tint="#fef3c7" />
+    <ModuleCard icon="🔗" title="Relação" desc="Tipo, vigência" to="/vinculos" tint="#fce7f3" />
   </ModuleGrid>
 );
 
@@ -57,9 +57,9 @@ export function Dashboard() {
       {CAD_MODULES}
       <SectionLabel>Financeiro</SectionLabel>
       <ModuleGrid three>
-        <ModuleCard icon="🧾" title="Cobranças" desc="cobranca — competência, valor, vencimento, boleto" to="/cobrancas" tint="#cffafe" />
-        <ModuleCard icon="💸" title="Despesas" desc="despesa — fornecedor, valor, categoria" to="/despesas" tint="#fee2e2" />
-        <ModuleCard icon="💰" title="Receitas" desc="receita — valor, categoria" to="/receitas" tint="#d1fae5" />
+        <ModuleCard icon="🧾" title="Cobranças" desc="Competência, valor, vencimento, boleto" to="/cobrancas" tint="#cffafe" />
+        <ModuleCard icon="💸" title="Despesas" desc="Fornecedor, valor, categoria" to="/despesas" tint="#fee2e2" />
+        <ModuleCard icon="💰" title="Receitas" desc="Valor, categoria" to="/receitas" tint="#d1fae5" />
       </ModuleGrid>
     </>
   );
@@ -101,10 +101,10 @@ export function FinanceiroOverview() {
       </StatGrid>
       <SectionLabel>Módulos</SectionLabel>
       <ModuleGrid>
-        <ModuleCard icon="🧾" title="Cobranças" desc="cobranca — valor, vencimento" to="/cobrancas" tint="#cffafe" />
-        <ModuleCard icon="💳" title="Pagamentos" desc="pagamento — forma, valor pago" to="/pagamentos" tint="#ede9fe" />
-        <ModuleCard icon="📤" title="Despesas" desc="despesa — fornecedor, categoria" to="/despesas" tint="#fee2e2" />
-        <ModuleCard icon="📥" title="Receitas" desc="receita — categoria, valor" to="/receitas" tint="#d1fae5" />
+        <ModuleCard icon="🧾" title="Cobranças" desc="Valor, vencimento" to="/cobrancas" tint="#cffafe" />
+        <ModuleCard icon="💳" title="Pagamentos" desc="Forma, valor pago" to="/pagamentos" tint="#ede9fe" />
+        <ModuleCard icon="📤" title="Despesas" desc="Fornecedor, categoria" to="/despesas" tint="#fee2e2" />
+        <ModuleCard icon="📥" title="Receitas" desc="Categoria, valor" to="/receitas" tint="#d1fae5" />
       </ModuleGrid>
     </>
   );
@@ -130,9 +130,9 @@ export function ServicosOverview() {
       </StatGrid>
       <SectionLabel>Módulos</SectionLabel>
       <ModuleGrid three>
-        <ModuleCard icon="🏊" title="Áreas Comuns" desc="area_comum — nome, capacidade" to="/areas-comuns" tint="#cffafe" />
-        <ModuleCard icon="⚠️" title="Ocorrências" desc="ocorrencia — título, tipo, morador" to="/ocorrencias" tint="#fef3c7" />
-        <ModuleCard icon="📢" title="Avisos" desc="avisos — título, publicação, expiração" to="/avisos" tint="#fce7f3" />
+        <ModuleCard icon="🏊" title="Áreas Comuns" desc="Nome, capacidade" to="/areas-comuns" tint="#cffafe" />
+        <ModuleCard icon="⚠️" title="Ocorrências" desc="Título, tipo, morador" to="/ocorrencias" tint="#fef3c7" />
+        <ModuleCard icon="📢" title="Avisos" desc="Título, publicação, expiração" to="/avisos" tint="#fce7f3" />
       </ModuleGrid>
     </>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { rotulo } from "@/lib/labels";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 
@@ -165,8 +166,7 @@ export function RelatedList({ title, items, footer }: { title: string; items: { 
       {footer && (
         <Link href={footer.to} className="flex items-center justify-between border-t border-line-soft px-5 py-3.5 text-[12.5px] font-bold text-primary">
           <span>{footer.label}</span>
-          {footer.hint && <small className="font-medium text-muted">{footer.hint}</small>}
-        </Link>
+                  </Link>
       )}
     </Card>
   );
@@ -175,7 +175,7 @@ export function RelatedList({ title, items, footer }: { title: string; items: { 
 /** linha de chave/valor dos cartões de detalhe */
 export const KV = ({ k, children }: { k: string; children: ReactNode }) => (
   <div className="flex justify-between gap-4 border-b border-line-soft px-5 py-3 last:border-b-0">
-    <span className="text-[12px] text-muted">{k}</span>
+    <span className="text-[12px] text-muted">{rotulo(k)}</span>
     <b className="text-right text-[12.5px] font-semibold">{children}</b>
   </div>
 );

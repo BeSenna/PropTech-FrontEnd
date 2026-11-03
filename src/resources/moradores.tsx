@@ -63,7 +63,7 @@ export const blocoCfg: ResourceConfig = {
     { name: 'blocoDescricao', label: 'Descrição', col: 'bloco_descricao', type: 'text', maxLength: 255, placeholder: 'Ex.: Torre frontal, 6 pavimentos' },
     { name: 'blocoStatus', label: 'Status', col: 'bloco_status', type: 'toggle', toggleTitle: 'Bloco ativo', toggleHint: 'Inativos não recebem novos imóveis' },
   ],
-  formSubtitle: 'Campos correspondentes à tabela bloco.',
+  formSubtitle: '',
   defaults: { blocoNome: '', blocoDescricao: '', blocoStatus: 1 },
   toForm: (r) => ({ blocoNome: r.blocoNome, blocoDescricao: r.blocoDescricao ?? '', blocoStatus: r.blocoStatus }),
   toPayload: (v, mode) => ({
@@ -72,7 +72,7 @@ export const blocoCfg: ResourceConfig = {
     blocoStatus: v.blocoStatus,
   }),
   rowTitle: (r) => r.blocoNome,
-  idLabel: (r) => `bloco_id ${idFmt(r.blocoId)}`,
+  idLabel: (r) => `Código ${idFmt(r.blocoId)}`,
   hasDetail: true,
   hero: {
     kind: 'BLOCO',
@@ -84,8 +84,8 @@ export const blocoCfg: ResourceConfig = {
   detailRows: (r) => [
     ['bloco_nome', r.blocoNome],
     ['bloco_descricao', vazio(r.blocoDescricao)],
-    ['bloco_status', r.blocoStatus === 1 ? '1 — Ativo' : '0 — Inativo'],
-    ['bloco_id', idFmt(r.blocoId)],
+    ['bloco_status', r.blocoStatus === 1 ? 'Ativo' : 'Inativo'],
+    ['Código', idFmt(r.blocoId)],
   ],
   related: (r) => ({
     title: 'Imóveis do bloco',
@@ -95,7 +95,7 @@ export const blocoCfg: ResourceConfig = {
       sub: `${i.imovelTipo}${andarTxt(i.imovelAndar)}`,
       to: `/imoveis/${i.imovelId}`,
     })),
-    footer: { label: 'Ver todos os imóveis', to: `/imoveis?blocoId=${r.blocoId}`, hint: `GET /imovel?bloco_id=${r.blocoId}` },
+    footer: { label: 'Ver todos os imóveis', to: `/imoveis?blocoId=${r.blocoId}` },
   }),
   statusOf: (r) => r.blocoStatus,
   inactivate: { label: 'Desativar', confirm: 'O bloco ficará inativo e não receberá novos imóveis. O histórico é mantido.' },
@@ -135,7 +135,7 @@ export const imovelCfg: ResourceConfig = {
   urlFilters: ['blocoId'],
   selectFilters: [{ param: 'blocoId', label: 'Bloco', load: loadBlocoOptions }],
   fields: [
-    { name: 'blocoId', label: 'Bloco', col: 'bloco_id (FK)', type: 'select', required: true, loadOptions: loadBlocoOptions, fkNote: '⚑ Referencia bloco.bloco_id.' },
+    { name: 'blocoId', label: 'Bloco', col: 'bloco_id (FK)', type: 'select', required: true, loadOptions: loadBlocoOptions },
     { name: 'imovelNumero', label: 'Número', col: 'imovel_numero', type: 'text', required: true, maxLength: 20, half: true, placeholder: 'Ex.: 101' },
     { name: 'imovelAndar', label: 'Andar', col: 'imovel_andar', type: 'number', half: true, placeholder: 'Ex.: 1' },
     {
@@ -155,7 +155,7 @@ export const imovelCfg: ResourceConfig = {
     { name: 'imovelIptu', label: 'IPTU', col: 'imovel_IPTU', type: 'text', maxLength: 24, half: true, placeholder: '21.334.502-0091' },
     { name: 'imovelStatus', label: 'Status', col: 'imovel_status', type: 'toggle', toggleTitle: 'Imóvel ativo', toggleHint: 'Inativos ficam ocultos nas buscas padrão' },
   ],
-  formSubtitle: 'Campos correspondentes à tabela imovel.',
+  formSubtitle: '',
   defaults: { blocoId: '', imovelNumero: '', imovelAndar: '', imovelTipo: 'APARTAMENTO', imovelAreaM2: '', imovelGaragem: '', imovelMatricula: '', imovelIptu: '', imovelStatus: 1 },
   toForm: (r) => ({
     blocoId: r.blocoId,
@@ -183,7 +183,7 @@ export const imovelCfg: ResourceConfig = {
     };
   },
   rowTitle: (r) => `${r.imovelTipo === 'COBERTURA' ? 'Cob.' : 'Apto'} ${r.imovelNumero}${r.bloco?.blocoNome ? ` · ${r.bloco.blocoNome}` : ''}`,
-  idLabel: (r) => `imovel_id ${idFmt(r.imovelId)}`,
+  idLabel: (r) => `Código ${idFmt(r.imovelId)}`,
   hasDetail: true,
   hero: {
     kind: 'IMÓVEL',
@@ -200,7 +200,7 @@ export const imovelCfg: ResourceConfig = {
     ['imovel_matricula', vazio(r.imovelMatricula)],
     ['imovel_IPTU', vazio(r.imovelIptu)],
     ['imovel_garagem', r.imovelGaragem === null || r.imovelGaragem === undefined ? '—' : `${r.imovelGaragem} vaga${r.imovelGaragem === 1 ? '' : 's'}`],
-    ['imovel_status', r.imovelStatus === 1 ? '1 — Ativa' : '0 — Inativa'],
+    ['imovel_status', r.imovelStatus === 1 ? 'Ativa' : 'Inativa'],
   ],
   related: (r) => ({
     title: 'Moradores vinculados',
@@ -275,7 +275,7 @@ export const moradorCfg: ResourceConfig = {
     { name: 'moradorDeficienciaLocomocao', label: 'Necessidade especial', col: 'morador_deficiencia_locomocao', type: 'toggle', toggleTitle: 'Possui deficiência', toggleHint: 'Prioridade em áreas comuns' },
     { name: 'moradorStatus', label: 'Status', col: 'morador_status', type: 'toggle', toggleTitle: 'Morador ativo', toggleHint: 'Inativos perdem acesso ao portal' },
   ],
-  formSubtitle: 'Campos correspondentes à tabela morador. morador_data_cadastro é preenchido automaticamente e não é editável.',
+  formSubtitle: 'A data de cadastro é preenchida automaticamente.',
   formTitle: 'Dados pessoais',
   defaults: { moradorNome: '', moradorCpf: '', moradorDataNascimento: '', moradorEmail: '', moradorTelefone: '', moradorDeficienciaLocomocao: 0, moradorStatus: 1 },
   toForm: (r) => ({
@@ -300,7 +300,7 @@ export const moradorCfg: ResourceConfig = {
     };
   },
   rowTitle: (r) => r.moradorNome,
-  idLabel: (r) => `morador_id ${idFmt(r.moradorId)}`,
+  idLabel: (r) => `Código ${idFmt(r.moradorId)}`,
   hasDetail: true,
   hero: {
     kind: 'MORADOR',
@@ -365,8 +365,8 @@ export const vinculoCfg: ResourceConfig = {
   searchable: false,
   urlFilters: ['moradorId', 'imovelId'],
   fields: [
-    { name: 'moradorId', label: 'Morador', col: 'morador_id (FK)', type: 'select', required: true, loadOptions: loadMoradorOptions, fkNote: '⚑ Referencia morador.morador_id.' },
-    { name: 'imovelId', label: 'Imóvel', col: 'imovel_id (FK)', type: 'select', required: true, loadOptions: loadImovelOptions, fkNote: '⚑ Referencia imovel.imovel_id.' },
+    { name: 'moradorId', label: 'Morador', col: 'morador_id (FK)', type: 'select', required: true, loadOptions: loadMoradorOptions },
+    { name: 'imovelId', label: 'Imóvel', col: 'imovel_id (FK)', type: 'select', required: true, loadOptions: loadImovelOptions },
     {
       name: 'moradorImovelTipoRelacao',
       label: 'Tipo de relação',
@@ -379,7 +379,7 @@ export const vinculoCfg: ResourceConfig = {
     { name: 'moradorImovelDataFim', label: 'Fim (opcional)', col: 'morador_imovel_data_fim', type: 'date', half: true },
     { name: 'moradorImovelStatus', label: 'Status', col: 'morador_imovel_status', type: 'toggle', toggleTitle: 'Vínculo ativo', toggleHint: 'Desative ao invés de excluir para manter histórico' },
   ],
-  formSubtitle: 'Campos correspondentes à tabela associativa morador_imovel.',
+  formSubtitle: '',
   defaults: { moradorId: '', imovelId: '', moradorImovelTipoRelacao: 'MORADOR', moradorImovelDataInicio: '', moradorImovelDataFim: '', moradorImovelStatus: 1, _acesso: false, _login: '', _senha: '' },
   extraFormSection: 'vinculoAcesso',
   toForm: (r) => ({
@@ -411,7 +411,7 @@ export const vinculoCfg: ResourceConfig = {
     }
   },
   rowTitle: (r) => `${r.morador?.moradorNome ?? 'Morador'} · ${r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : `Imóvel #${r.imovelId}`}`,
-  idLabel: (r) => `morador_imovel_id ${idFmt(r.moradorImovelId)}`,
+  idLabel: (r) => `Código ${idFmt(r.moradorImovelId)}`,
   hasDetail: true,
   hero: {
     kind: 'RELAÇÃO',
@@ -426,7 +426,7 @@ export const vinculoCfg: ResourceConfig = {
     ['morador_imovel_data_inicio', fmtDate(r.moradorImovelDataInicio)],
     ['morador_imovel_data_fim', fmtDate(r.moradorImovelDataFim)],
     ['estado (derivado)', r.estado],
-    ['morador_imovel_status', r.moradorImovelStatus === 1 ? '1 — Ativo' : '0 — Inativo'],
+    ['morador_imovel_status', r.moradorImovelStatus === 1 ? 'Ativo' : 'Inativo'],
     ['usuario_id', r.usuarioId ? idFmt(r.usuarioId) : '— (sem acesso ao portal)'],
   ],
   related: (r) => ({
@@ -480,7 +480,7 @@ export const usuarioCfg: ResourceConfig = {
     },
     { name: 'usuarioStatus', label: 'Status', col: 'usuario_status', type: 'toggle', toggleTitle: 'Conta ativa', toggleHint: 'Desativar bloqueia também os tokens já emitidos' },
   ],
-  formSubtitle: 'Contas de acesso ao sistema (tabela usuario). A senha nunca é exibida.',
+  formSubtitle: 'Contas de acesso ao sistema. A senha nunca é exibida.',
   defaults: { usuarioLogin: '', senha: '', novaSenha: '', usuarioPerfil: 'MORADOR', usuarioStatus: 1 },
   toForm: (r) => ({ usuarioLogin: r.usuarioLogin, novaSenha: '', usuarioPerfil: r.usuarioPerfil, usuarioStatus: r.usuarioStatus }),
   toPayload: (v, mode) => ({
@@ -493,7 +493,7 @@ export const usuarioCfg: ResourceConfig = {
     if (mode === 'edit' && v.novaSenha) await trocarSenha(saved.usuarioId, v.novaSenha);
   },
   rowTitle: (r) => r.usuarioLogin,
-  idLabel: (r) => `usuario_id ${idFmt(r.usuarioId)}`,
+  idLabel: (r) => `Código ${idFmt(r.usuarioId)}`,
   hasDetail: false,
   statusOf: (r) => r.usuarioStatus,
   inactivate: { label: 'Desativar', confirm: 'O acesso será revogado imediatamente (inclusive tokens já emitidos).' },

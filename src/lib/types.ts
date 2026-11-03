@@ -89,7 +89,7 @@ export interface ResourceConfig {
   enrich?: (rows: Rec[]) => Promise<Rec[]>;
   fields: FieldDef[];
   formTitle?: string;
-  formSubtitle: string;
+  formSubtitle?: string;
   defaults: Rec;
   toForm: (row: Rec) => Rec;
   toPayload: (values: Rec, mode: 'create' | 'edit') => Rec;

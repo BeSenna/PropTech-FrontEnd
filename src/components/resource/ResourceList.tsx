@@ -136,7 +136,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         title={cfg.plural}
         sub={
           <>
-            {cfg.endpoint} — {total} registro{total === 1 ? "" : "s"}
+            {total} registro{total === 1 ? "" : "s"}
             {cfg.mockTag && <MockTag />}
             {cfg.listSub && <MockTag blue>{cfg.listSub}</MockTag>}
           </>

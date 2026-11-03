@@ -140,12 +140,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
 
   return (
     <>
-      <PageHeader title={titulo} sub={mode === "edit" && row ? cfg.idLabel(row) : cfg.endpoint.replace("GET", "POST")} />
+      <PageHeader title={titulo} sub={mode === "edit" && row ? cfg.idLabel(row) : undefined} />
       <form onSubmit={enviar} noValidate>
         <Card className="max-w-[760px]">
           <header className="border-b border-line-soft px-5 py-4">
             <h3 className="m-0 text-sm font-bold">{cfg.formTitle ?? `Dados d${cfg.gender === "m" ? "o" : "a"} ${cfg.singular}`}</h3>
-            <p className="mt-[3px] mb-0 text-xs text-muted">{cfg.formSubtitle}</p>
+            {cfg.formSubtitle && <p className="mt-[3px] mb-0 text-xs text-muted">{cfg.formSubtitle}</p>}
           </header>
           {erro && (
             <div className="mx-[26px] mt-3.5">
@@ -160,11 +160,11 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
             {cfg.extraFormSection === "vinculoAcesso" && (
               <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-[#f8f9fd] px-4 py-3.5">
                 <div className="text-[11.5px] font-bold">
-                  Acesso ao sistema · <span className="font-semibold text-ink-2">usuario_id (FK opcional em morador_imovel)</span>
+                  Acesso ao sistema
                 </div>
                 {mode === "edit" ? (
                   <div className="text-[11px] text-muted">
-                    {values._usuarioId ? `Esta relação já tem acesso (usuario_id #${values._usuarioId}). Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Crie a conta em Usuários."}
+                    {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Crie a conta em Usuários."}
                   </div>
                 ) : (
                   <>
@@ -173,7 +173,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
                       <div className="grid grid-cols-1 gap-3 min-[820px]:grid-cols-2">
                         <div className="flex flex-col gap-[7px]">
                           <label htmlFor="f_login" className={labelCls}>
-                            Login · usuario_login
+                            Login
                           </label>
                           <input id="f_login" className={inputCls} value={values._login} maxLength={100} onChange={(e) => set("_login", e.target.value)} placeholder="seu.login" autoComplete="off" />
                         </div>
@@ -185,7 +185,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
                         </div>
                       </div>
                     )}
-                    <div className="text-[11px] text-muted">⚑ usuario_id fica em morador_imovel, não em morador — cada vínculo pode ter sua própria conta.</div>
+                    <div className="text-[11px] text-muted">Cada relação pode ter a sua própria conta de acesso.</div>
                   </>
                 )}
               </div>
@@ -230,7 +230,7 @@ function Field({ f, value, options, onChange }: { f: FieldDef; value: unknown; o
   const label = (
     <>
       {f.label}
-      {f.required ? " *" : ""} · <span className="font-semibold text-ink-2">{f.col}</span>
+      {f.required ? " *" : ""}
     </>
   );
   const wrap = (children: ReactNode) => (

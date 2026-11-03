@@ -108,7 +108,6 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
           <div className="grid size-8 flex-none place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-navy">PT</div>
           <div>
             <strong className="block text-sm text-white">PropTech</strong>
-            <small className="text-[10.5px] text-side-muted">condominio_moradores</small>
           </div>
         </div>
         <div className="mt-1.5 mb-1 text-[10px] font-bold tracking-[0.04em] text-[#7c8ac2] uppercase">Início</div>

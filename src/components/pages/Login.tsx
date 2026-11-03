@@ -40,7 +40,6 @@ export default function Login() {
           <div className="grid size-[38px] flex-none place-items-center rounded-[9px] bg-accent text-[15px] font-extrabold text-navy">PT</div>
           <div>
             <strong className="block text-sm text-navy">PropTech</strong>
-            <small className="text-[10.5px] text-muted">condominio_moradores</small>
           </div>
         </div>
         <h1 className="m-0 mt-2 text-[22px] font-extrabold text-navy">Entrar no PropTech</h1>
@@ -49,7 +48,7 @@ export default function Login() {
         <form onSubmit={enviar} className="grid gap-4">
           <div className="flex flex-col gap-[7px]">
             <label htmlFor="usuario" className={lbl}>
-              Login · <span className="font-semibold">usuario_login</span>
+              Login
             </label>
             <input id="usuario" className={inputCls} value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder="seu.login" autoComplete="username" autoFocus />
           </div>
