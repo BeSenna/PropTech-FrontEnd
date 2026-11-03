@@ -65,6 +65,17 @@ export const loadBlocoOptions = async (): Promise<Option[]> =>
 export const loadMoradorOptions = async (): Promise<Option[]> =>
   (await todos('/morador', { status: 1 })).map((m) => ({ value: m.moradorId, label: m.moradorNome }));
 
+// Relações ativas que ainda não têm conta de login (usadas ao criar um usuário MORADOR).
+export const loadRelacaoSemContaOptions = async (): Promise<Option[]> => {
+  const [rels, blocos] = await Promise.all([todos('/morador-imovel', { status: 1 }), getBlocoMap()]);
+  return rels
+    .filter((r) => !r.usuarioId && r.estado !== 'ENCERRADO')
+    .map((r) => ({
+      value: r.moradorImovelId,
+      label: `${r.morador?.moradorNome ?? `Morador #${r.moradorId}`} · Apto ${r.imovel?.imovelNumero ?? r.imovelId} · ${blocos[r.imovel?.blocoId] ?? 'Bloco —'} · ${r.moradorImovelTipoRelacao}`,
+    }));
+};
+
 export const loadImovelOptions = async (): Promise<Option[]> => {
   const [imoveis, blocos] = await Promise.all([todos('/imovel', { status: 1 }), getBlocoMap()]);
   return imoveis.map((i) => ({ value: i.imovelId, label: imovelRotulo(i, blocos[i.blocoId]) }));

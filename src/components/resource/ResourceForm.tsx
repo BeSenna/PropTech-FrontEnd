@@ -72,10 +72,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
 
   const set = (name: string, v: unknown) => setValues((x) => ({ ...(x as Rec), [name]: v }));
   const optionsOf = (f: FieldDef) => f.options ?? opts[f.name] ?? [];
+  // campos condicionais (visibleWhen) só valem enquanto aparecem na tela
+  const visiveis = (v: Rec) => campos.filter((f) => !f.visibleWhen || f.visibleWhen(v));
 
   const converter = (v: Rec): Rec => {
     const out: Rec = { ...v };
-    for (const f of campos) {
+    for (const f of visiveis(v)) {
       const raw = v[f.name];
       if (f.type === "number") out[f.name] = raw === "" || raw === undefined ? "" : Number(raw);
       else if (f.type === "money") out[f.name] = raw === "" || raw === undefined ? "" : moneyToNumber(raw);
@@ -92,7 +94,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     e.preventDefault();
     if (!values) return;
     setErro("");
-    for (const f of campos) {
+    for (const f of visiveis(values)) {
       const v = values[f.name];
       if (f.required && (v === "" || v === undefined || v === null)) {
         setErro(`Preencha o campo "${f.label}".`);
@@ -152,7 +154,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
             </div>
           )}
           <div className="grid grid-cols-1 gap-x-5 gap-y-[18px] px-[26px] pt-[22px] pb-2 min-[820px]:grid-cols-2">
-            {campos.map((f) => (
+            {visiveis(values).map((f) => (
               <Field key={f.name} f={f} value={values[f.name]} options={optionsOf(f)} onChange={(v) => set(f.name, v)} />
             ))}
 
@@ -163,7 +165,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
                 </div>
                 {mode === "edit" ? (
                   <div className="text-[11px] text-muted">
-                    {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Crie a conta em Usuários."}
+                    {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Para dar acesso, vá em Usuários → Novo, escolha o perfil MORADOR e selecione esta relação."}
                   </div>
                 ) : (
                   <>

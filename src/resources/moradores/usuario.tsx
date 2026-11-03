@@ -1,7 +1,7 @@
 import { fmtDate, fmtDateTime } from '@/lib/format';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
-import { trocarSenha, usuarioApi } from '@/services/moradorService';
+import { loadRelacaoSemContaOptions, trocarSenha, usuarioApi } from '@/services/moradorService';
 import { idFmt, ativoTxt, sv } from './shared';
 
 // ---------------------------------------------------------------- Usuários (contas de acesso)
@@ -41,16 +41,28 @@ export const usuarioCfg: ResourceConfig = {
         { value: 'SINDICO', label: 'SINDICO' },
       ],
     },
+    {
+      name: 'moradorImovelId',
+      label: 'Relação (opcional)',
+      col: 'morador_imovel_id',
+      type: 'select',
+      mode: 'create',
+      loadOptions: loadRelacaoSemContaOptions,
+      visibleWhen: (v) => v.usuarioPerfil === 'MORADOR',
+      fkNote: 'Liga esta conta a uma relação que ainda não tem acesso. Sem relação, o morador não consegue usar o portal.',
+    },
     { name: 'usuarioStatus', label: 'Status', col: 'usuario_status', type: 'toggle', toggleTitle: 'Conta ativa', toggleHint: 'Desativar bloqueia também os tokens já emitidos' },
   ],
   formSubtitle: 'Contas de acesso ao sistema. A senha nunca é exibida.',
-  defaults: { usuarioLogin: '', senha: '', novaSenha: '', usuarioPerfil: 'MORADOR', usuarioStatus: 1 },
+  defaults: { usuarioLogin: '', senha: '', novaSenha: '', usuarioPerfil: 'MORADOR', moradorImovelId: '', usuarioStatus: 1 },
   toForm: (r) => ({ usuarioLogin: r.usuarioLogin, novaSenha: '', usuarioPerfil: r.usuarioPerfil, usuarioStatus: r.usuarioStatus }),
   toPayload: (v, mode) => ({
     usuarioLogin: String(v.usuarioLogin).trim(),
     usuarioPerfil: v.usuarioPerfil,
     usuarioStatus: v.usuarioStatus,
     ...(mode === 'create' ? { senha: v.senha } : {}),
+    // a relação só vale para conta MORADOR e só na criação (o back não religa depois)
+    ...(mode === 'create' && v.usuarioPerfil === 'MORADOR' && v.moradorImovelId ? { moradorImovelId: Number(v.moradorImovelId) } : {}),
   }),
   afterSave: async (saved, v, mode) => {
     if (mode === 'edit' && v.novaSenha) await trocarSenha(saved.usuarioId, v.novaSenha);

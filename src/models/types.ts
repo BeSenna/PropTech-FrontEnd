@@ -60,6 +60,7 @@ export interface FieldDef {
   maxLength?: number;
   validate?: (value: unknown) => string | null; // mensagem de erro (ou null se válido); só roda com o campo preenchido
   mode?: 'create' | 'edit'; // visível só nesse modo
+  visibleWhen?: (values: Rec) => boolean; // campo condicional (ex.: só aparece para certo perfil)
 }
 
 export interface ChipFilter {
