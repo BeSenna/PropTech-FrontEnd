@@ -391,13 +391,14 @@ export const vinculoCfg: ResourceConfig = {
     moradorImovelStatus: r.moradorImovelStatus,
     _usuarioId: r.usuarioId,
   }),
-  toPayload: (v) => ({
+  toPayload: (v, mode) => ({
     moradorId: v.moradorId,
     imovelId: v.imovelId,
     moradorImovelTipoRelacao: v.moradorImovelTipoRelacao,
     moradorImovelDataInicio: v.moradorImovelDataInicio,
     moradorImovelStatus: v.moradorImovelStatus,
-    ...(v.moradorImovelDataFim ? { moradorImovelDataFim: v.moradorImovelDataFim } : {}),
+    // ao editar, campo vazio envia null para o back limpar a data de fim
+    ...(v.moradorImovelDataFim ? { moradorImovelDataFim: v.moradorImovelDataFim } : mode === 'edit' ? { moradorImovelDataFim: null } : {}),
   }),
   afterSave: async (saved, v, mode) => {
     // Conceder acesso = criar o usuário já ligado a esta relação (POST /usuario com moradorImovelId)
@@ -465,8 +466,8 @@ export const usuarioCfg: ResourceConfig = {
   searchable: false,
   fields: [
     { name: 'usuarioLogin', label: 'Login', col: 'usuario_login', type: 'text', required: true, maxLength: 100, placeholder: 'seu.login' },
-    { name: 'senha', label: 'Senha', col: 'senha (mín. 8 caracteres)', type: 'password', required: true, mode: 'create', placeholder: '••••••••' },
-    { name: 'novaSenha', label: 'Nova senha (opcional)', col: 'trocar senha', type: 'password', mode: 'edit', placeholder: 'Deixe em branco para manter' },
+    { name: 'senha', label: 'Senha', col: 'senha (mín. 8 caracteres)', type: 'password', required: true, mode: 'create', placeholder: '••••••••', validate: (v) => (String(v).length >= 8 ? null : 'A senha deve ter pelo menos 8 caracteres.') },
+    { name: 'novaSenha', label: 'Nova senha (opcional)', col: 'trocar senha', type: 'password', mode: 'edit', placeholder: 'Deixe em branco para manter', validate: (v) => (String(v).length >= 8 ? null : 'A senha deve ter pelo menos 8 caracteres.') },
     {
       name: 'usuarioPerfil',
       label: 'Perfil',

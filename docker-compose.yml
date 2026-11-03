@@ -1,5 +1,7 @@
-# Sobe o frontend (Next.js, porta 7520). As variáveis vêm do ambiente, que no projeto vem do Infisical:
-#   npx infisical run --env=dev -- docker compose up -d --build
+# Sobe o frontend (Next.js, porta 7520):
+#   docker compose up -d --build
+# Sem segredos: o frontend não usa Infisical. As variáveis NEXT_PUBLIC_* vêm do ambiente (no servidor, do Jenkinsfile)
+# e são gravadas no build. Ex. com o subcaminho de produção:  NEXT_PUBLIC_BASE_PATH=/condominio docker compose up -d --build
 services:
   frontend:
     build:
