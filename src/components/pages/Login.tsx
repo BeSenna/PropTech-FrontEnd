@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthContext";
 import { btn, ErrorBox, inputCls } from "@/components/ui";
 
@@ -14,7 +14,6 @@ export default function Login() {
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
   const [busy, setBusy] = useState(false);
-  const esperado = useRef<"SINDICO" | "MORADOR">("SINDICO");
 
   useEffect(() => {
     if (ready && user) router.replace(user.usuarioPerfil === "SINDICO" ? "/" : "/portal");
@@ -26,7 +25,7 @@ export default function Login() {
     if (!usuario.trim() || !senha) return setErro("Informe login e senha.");
     setBusy(true);
     try {
-      await login(usuario.trim(), senha, esperado.current);
+      await login(usuario.trim(), senha); // o perfil vem da própria conta; o useEffect acima redireciona
     } catch (e2) {
       setErro((e2 as Error).message);
     } finally {
@@ -45,7 +44,7 @@ export default function Login() {
           </div>
         </div>
         <h1 className="m-0 mt-2 text-[22px] font-extrabold text-navy">Entrar no PropTech</h1>
-        <p className="mt-1 mb-[18px] text-[12.5px] text-muted">Síndico(a) ou morador — use seu login para acessar sua área.</p>
+        <p className="mt-1 mb-[18px] text-[12.5px] text-muted">Use seu login e senha. O sistema abre a área correta para o seu perfil.</p>
         {erro && <ErrorBox>{erro}</ErrorBox>}
         <form onSubmit={enviar} className="grid gap-4">
           <div className="flex flex-col gap-[7px]">
@@ -60,14 +59,9 @@ export default function Login() {
             </label>
             <input id="senha" className={inputCls} type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
           </div>
-          <div className="grid gap-2.5 min-[420px]:grid-cols-2">
-            <button type="submit" className={`${btn("outline")} justify-center`} disabled={busy} onClick={() => (esperado.current = "SINDICO")}>
-              Entrar como Síndico(a)
-            </button>
-            <button type="submit" className={`${btn("primary")} justify-center`} disabled={busy} onClick={() => (esperado.current = "MORADOR")}>
-              Entrar como Morador
-            </button>
-          </div>
+          <button type="submit" className={`${btn("primary")} justify-center`} disabled={busy}>
+            {busy ? "Entrando…" : "Entrar"}
+          </button>
         </form>
         <p className="mt-[18px] mb-0 text-center text-[11px] text-muted">
           Acesso exclusivo para moradores cadastrados pelo síndico.

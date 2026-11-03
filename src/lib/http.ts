@@ -65,6 +65,10 @@ export async function http<T = any>(
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
     if (res.status === 401 && token && !path.startsWith("/auth/login")) onUnauthorized?.();
+    // 5xx sem corpo JSON = proxy/gateway sem conseguir chegar no MS Moradores (ex.: backend desligado)
+    if (res.status >= 500 && !data?.message) {
+      throw new ApiError(`API indisponível (erro ${res.status}). Verifique se o MS Moradores está no ar.`, res.status);
+    }
     const m = data?.message;
     const msg = Array.isArray(m) ? m.join(" · ") : m || `Erro ${res.status}`;
     throw new ApiError(msg, res.status);

@@ -14,7 +14,7 @@ interface AuthState {
   user: SessionUser | null;
   /** false até a sessão guardada no navegador ser lida e revalidada */
   ready: boolean;
-  login(login: string, senha: string, esperado?: "SINDICO" | "MORADOR"): Promise<SessionUser>;
+  login(login: string, senha: string): Promise<SessionUser>;
   logout(): void;
 }
 
@@ -71,19 +71,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [logout]);
 
-  const login = useCallback(async (usuarioLogin: string, senha: string, esperado?: "SINDICO" | "MORADOR") => {
+  const login = useCallback(async (usuarioLogin: string, senha: string) => {
     const r = await http<{ accessToken: string; usuario: SessionUser }>("/auth/login", {
       method: "POST",
       body: { usuarioLogin, senha },
     });
-    // confere o perfil ANTES de guardar a sessão, para não "piscar" dentro do sistema com o botão errado
-    if (esperado && r.usuario.usuarioPerfil !== esperado) {
-      throw new Error(
-        r.usuario.usuarioPerfil === "SINDICO"
-          ? 'Esta conta é de síndico(a). Use o botão "Entrar como Síndico(a)".'
-          : 'Esta conta é de morador. Use o botão "Entrar como Morador".',
-      );
-    }
     setToken(r.accessToken);
     try {
       localStorage.setItem(USER_KEY, JSON.stringify(r.usuario));
