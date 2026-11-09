@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "re
 import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/components/ui";
 import { useToast } from "@/components/Toast";
 import { limparCache } from "@/services/moradorService";
+import { SENHA_DICA, validarSenha } from "@/lib/senha";
 import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -108,7 +109,8 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     }
     if (cfg.extraFormSection === "vinculoAcesso" && mode === "create" && values._acesso) {
       if (!String(values._login).trim()) return setErro("Informe o login de acesso.");
-      if (String(values._senha).length < 8) return setErro("A senha deve ter pelo menos 8 caracteres.");
+      const msgSenha = validarSenha(String(values._senha));
+      if (msgSenha) return setErro(msgSenha);
     }
     if (values.moradorImovelDataFim && values.moradorImovelDataInicio && values.moradorImovelDataFim < values.moradorImovelDataInicio) {
       return setErro("O fim da relação não pode ser anterior ao início.");
@@ -180,9 +182,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
                         </div>
                         <div className="flex flex-col gap-[7px]">
                           <label htmlFor="f_senha" className={labelCls}>
-                            Senha inicial (mín. 8)
+                            Senha inicial
                           </label>
-                          <input id="f_senha" className={inputCls} type="password" value={values._senha} onChange={(e) => set("_senha", e.target.value)} autoComplete="new-password" />
+                          <input id="f_senha" className={inputCls} type="password" value={values._senha} onChange={(e) => set("_senha", e.target.value)} autoComplete="new-password" aria-describedby="f_senha_dica" />
+                          <div id="f_senha_dica" className="text-[11px] text-muted">
+                            {SENHA_DICA}
+                          </div>
                         </div>
                       </div>
                     )}

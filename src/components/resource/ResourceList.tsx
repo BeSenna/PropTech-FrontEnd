@@ -213,11 +213,14 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse">
+              <caption className="sr-only">Lista de {cfg.plural.toLowerCase()}</caption>
               <thead>
                 <tr>
                   {cfg.columns.map((c) => (
                     <th
                       key={c.key}
+                      scope="col"
+                      aria-sort={c.sortValue && sort?.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
                       className={cx("border-b border-line px-[18px] py-3.5 text-left text-[10.5px] font-bold tracking-[0.03em] whitespace-nowrap text-muted uppercase select-none", c.sortValue && "cursor-pointer")}
                       onClick={() => c.sortValue && setSort((s) => (s?.key === c.key ? { key: c.key, dir: (s.dir * -1) as 1 | -1 } : { key: c.key, dir: 1 }))}
                     >

@@ -6,6 +6,9 @@
 //   dev               : o mesmo valor; o next.config.ts encaminha para API_PROXY_TARGET (MS local)
 const BASE: string = process.env.NEXT_PUBLIC_API_URL ?? "/condominio/gateway/morador";
 const TOKEN_KEY = "proptech.token";
+/** tempo máximo de espera por uma resposta da API */
+const TIMEOUT_MS = 10_000;
+const MSG_ACESSO_NEGADO = "Acesso negado. Você não tem permissão para esta ação.";
 
 export class ApiError extends Error {
   status: number;
@@ -48,7 +51,11 @@ export async function http<T = any>(
     if (v !== undefined && v !== null && v !== "") url.searchParams.set(k, String(v));
   }
   const token = getToken();
+  // timeout: sem resposta em TIMEOUT_MS a chamada é cancelada (a espera inclui a leitura do corpo)
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   let res: Response;
+  let text: string;
   try {
     res = await fetch(url.toString(), {
       method: opts.method ?? "GET",
@@ -57,11 +64,17 @@ export async function http<T = any>(
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
       body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
+      signal: controller.signal,
     });
+    text = await res.text();
   } catch {
+    if (controller.signal.aborted) {
+      throw new ApiError(`A API demorou mais de ${TIMEOUT_MS / 1000} s para responder. Tente novamente.`, 0);
+    }
     throw new ApiError("Não foi possível falar com a API. Verifique se o MS Moradores está rodando.", 0);
+  } finally {
+    clearTimeout(timer);
   }
-  const text = await res.text();
   const data = text ? safeJson(text) : null;
   if (!res.ok) {
     if (res.status === 401 && token && !path.startsWith("/auth/login")) onUnauthorized?.();
@@ -71,6 +84,8 @@ export async function http<T = any>(
     }
     const m = data?.message;
     const msg = Array.isArray(m) ? m.join(" · ") : m || `Erro ${res.status}`;
+    // 403 do NestJS vem em inglês ("Forbidden resource"): troca por uma mensagem clara; mensagens próprias da API são mantidas
+    if (res.status === 403 && (!m || m === "Forbidden resource")) throw new ApiError(MSG_ACESSO_NEGADO, 403);
     throw new ApiError(msg, res.status);
   }
   return data as T;

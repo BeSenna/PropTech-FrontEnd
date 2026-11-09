@@ -139,7 +139,7 @@ Com o backend e o frontend no ar:
 4. **Moradores → Novo:** cadastre um morador. O **CPF precisa ser válido**: o formulário confere os dígitos verificadores, e o backend também.
    - Use, por exemplo, `529.982.247-25` (válido).
    - `111.111.111-11` e `529.982.247-24` são recusados.
-5. **Relação → Nova relação:** ligue o morador ao imóvel (tipo Proprietário, data de início) e ative **"Conceder acesso ao Portal do Morador"**. Informe um login e uma senha de 8+ caracteres. Isso cria a conta do morador já vinculada.
+5. **Relação → Nova relação:** ligue o morador ao imóvel (tipo Proprietário, data de início) e ative **"Conceder acesso ao Portal do Morador"**. Informe um login e uma senha que siga a [política de senha](#10-como-funciona-por-dentro) (8 a 16 caracteres, com maiúscula, minúscula, número e caractere especial, ex.: `Senha@1234`). Isso cria a conta do morador já vinculada.
 
    > **Alternativa:** se a relação já existe sem login, vá em **Usuários → Novo**, escolha o perfil **MORADOR**, selecione a relação no campo **Relação** e defina login e senha. A relação precisa estar ativa e sem conta. A ligação só é feita **na criação** da conta.
 6. Saia (botão **Sair**, no canto inferior do menu lateral) e entre com essa conta, na mesma tela de login.
@@ -233,7 +233,7 @@ O projeto segue a organização sugerida nas aulas de React: **a página coorden
 
 ```
 src/
-  app/                     rotas (App Router): login, (sindico)/, portal/
+  app/                     rotas (App Router): login, (sindico)/, portal/; loading, error e global-error (telas de carregamento e de erro)
   auth/                    AuthContext (sessão e JWT)
   components/
     ui.tsx                 peças visuais + classes Tailwind compartilhadas
@@ -242,7 +242,7 @@ src/
     pages/                 Login, Overviews
     portal/                telas do Portal do Morador (uma por arquivo)
   hooks/                   hooks próprios (useStatsMoradores)
-  lib/                     format (CPF, datas, dinheiro), labels
+  lib/                     format (CPF, datas, dinheiro), labels, senha (política de senha)
   mock/                    store (localStorage) + dados de demonstração
   models/                  types (formato dos dados e das configurações), sessao
   resources/               configuração de cada recurso (moradores/ = API real, simulados/ = mock)
@@ -265,10 +265,16 @@ src/
 - **Sessão:** o login devolve um JWT, guardado no `localStorage` (`proptech.token`). A sessão é revalidada em `/auth/me`. As chamadas de login e sessão ficam em `src/services/authService.ts`.
 - **Perfil pela conta:** não existe escolha de perfil na tela de login. A API devolve o perfil da conta, e o front só redireciona: síndico para o painel, morador para o portal.
 - **Erro 401:** qualquer resposta 401 (token vencido ou usuário desativado — o backend consulta o banco a cada requisição) encerra a sessão e volta ao login.
+- **Erro 403:** a resposta em inglês do NestJS ("Forbidden resource") vira "Acesso negado. Você não tem permissão para esta ação."; se a API mandar uma mensagem própria, ela é mantida.
+- **Tempo limite:** toda chamada à API é cancelada se não houver resposta em 10 s, com a mensagem "A API demorou mais de 10 s para responder. Tente novamente." (`TIMEOUT_MS`, em `src/services/http.ts`).
+- **Logout:** além de apagar o token e a sessão, limpa o cache em memória de consultas (moradores, relações, blocos), para os dados do síndico não sobreviverem na aba.
 - **Guarda de perfil:** as áreas do síndico e do morador só renderizam depois de a sessão ser lida no navegador (por isso não há erro de hidratação). Um perfil não acessa a área do outro.
 - **Privacidade (LGPD):** no backend, a lista de moradores e a de relações são só do síndico. O Portal do Morador lê apenas o **próprio** cadastro (`GET /morador/:id` com o `moradorId` da sessão); qualquer outro id devolve 403.
 - **CPF:** o formulário confere os dígitos verificadores antes de enviar (`cpfValido`, em `src/lib/format.ts`, mesma regra do backend). Se estiver errado, o aviso aparece e nada é enviado à API.
-- **Validação própria por campo:** `validate` em `FieldDef` (`src/models/types.ts`) roda antes do envio; a mensagem aparece no topo do formulário. A senha de usuário, por exemplo, exige 8+ caracteres.
+- **Validação própria por campo:** `validate` em `FieldDef` (`src/models/types.ts`) roda antes do envio; a mensagem aparece no topo do formulário. A senha de usuário, por exemplo, segue a política de senha.
+- **Política de senha:** de 8 a 16 caracteres, com letra maiúscula, minúscula, número e caractere especial (`src/lib/senha.ts`). É a mesma regra do backend, que é quem a garante; o front só orienta, mostrando a dica abaixo do campo e a mensagem do requisito que falta. Vale ao criar usuário, ao trocar a senha e ao conceder acesso pela relação. O login continua aceitando contas antigas.
+- **Telas de carregamento e erro:** `src/app/loading.tsx` ("Carregando…", com `role="status"`), `error.tsx` (erro ao renderizar uma página, com botão "Tentar novamente") e `global-error.tsx` (erro no layout raiz). Erros de chamada à API continuam aparecendo no próprio formulário ou lista.
+- **Acessibilidade das tabelas:** cada tabela tem `caption` (só para leitores de tela) e `th scope="col"`; a coluna ordenada informa `aria-sort`.
 - **Campos condicionais:** `visibleWhen` em `FieldDef` mostra um campo só quando a condição vale (ex.: o campo **Relação** de Usuários → Novo só aparece para o perfil MORADOR). Campo escondido não é validado nem enviado.
 - **Conta ligada à relação:** a conta de um morador fica ligada a uma **relação**. Essa ligação só é feita na criação da conta (por "Conceder acesso" na relação ou pelo campo **Relação** em Usuários → Novo); o backend não religa depois.
 - **Editar com campos vazios:** ao salvar uma edição com campos opcionais limpos (e-mail, telefone, datas, matrícula…), o front envia `null`, e o backend limpa o campo.
@@ -286,7 +292,9 @@ src/
 | Login: "Login ou senha inválidos" | Usuário ou senha errados | Use `admin` e a `ADMIN_SENHA` do backend. O síndico só é criado se ainda não existir um |
 | "Esta conta ainda não está vinculada a um morador" (portal) | A conta de morador foi criada sem relação | Crie o acesso em **Relação → Nova relação → Conceder acesso**, ou em **Usuários → Novo** escolhendo a **Relação**. Uma conta que já foi criada solta não pode ser ligada depois: crie outro login já ligado à relação e desative o antigo |
 | "CPF inválido" ao cadastrar | CPF com dígito verificador errado | Use um CPF válido, ex.: `529.982.247-25` |
-| "A senha deve ter pelo menos 8 caracteres." | Senha curta ao criar usuário ou ao trocar a senha | Use 8 caracteres ou mais |
+| "A senha deve ter entre 8 e 16 caracteres." / "…maiúscula e uma minúscula" / "…um número" / "…um caractere especial" | A senha não segue a política de senha | Use de 8 a 16 caracteres, com maiúscula, minúscula, número e caractere especial (ex.: `Senha@1234`) |
+| "Acesso negado. Você não tem permissão para esta ação." | A API respondeu 403: o perfil da conta não pode fazer isso | Entre com uma conta de síndico, ou peça a permissão |
+| "A API demorou mais de 10 s para responder." | Backend ou gateway lento ou travado; banco fora do ar | Tente de novo; confira `GET /condominio/morador/health` do backend (deve responder `Healthy`) |
 | `http://localhost:3000/login` dá 404 | `NEXT_PUBLIC_BASE_PATH=/condominio` no `.env.local` | Deixe vazio (ou acesse `/condominio/login`) e reinicie o `npm run dev` |
 | A tela carrega, mas os botões não respondem (em dev) | Página aberta por `127.0.0.1`, que o Next.js em desenvolvimento pode bloquear | Abra por `http://localhost:3000` |
 | Mudei uma variável `NEXT_PUBLIC_*` e nada mudou | Elas são lidas no build | Reinicie o `npm run dev` ou rode `docker compose up -d --build` |

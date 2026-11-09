@@ -123,7 +123,11 @@ export function ModuleCard({ icon, title, desc, to, tint }: { icon: string; titl
 }
 
 export const Empty = ({ children }: { children: ReactNode }) => <div className="p-9 text-center text-muted">{children}</div>;
-export const Loading = () => <div className="p-9 text-center text-muted">Carregando…</div>;
+export const Loading = () => (
+  <div role="status" aria-live="polite" className="p-9 text-center text-muted">
+    Carregando…
+  </div>
+);
 export function ErrorBox({ children }: { children: ReactNode }) {
   return (
     <div className="mb-3.5 rounded-[10px] bg-bad-bg px-3.5 py-[11px] text-[12.5px] font-semibold text-bad-fg" role="alert">

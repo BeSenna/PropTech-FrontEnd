@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { getToken, setToken, setUnauthorizedHandler } from "@/services/http";
 import { entrar, sessaoAtual } from "@/services/authService";
+import { limparCache } from "@/services/moradorService";
 import type { SessionUser } from "@/models/sessao";
 
 interface AuthState {
@@ -32,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(() => {
     setToken(null);
+    limparCache(); // dados de moradores/relações em memória não podem sobreviver ao logout
     try {
       localStorage.removeItem(USER_KEY);
     } catch {

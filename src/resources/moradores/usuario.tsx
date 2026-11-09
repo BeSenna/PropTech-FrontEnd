@@ -2,6 +2,7 @@ import { fmtDate, fmtDateTime } from '@/lib/format';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { loadRelacaoSemContaOptions, trocarSenha, usuarioApi } from '@/services/moradorService';
+import { SENHA_DICA, validarSenha } from '@/lib/senha';
 import { idFmt, ativoTxt, sv } from './shared';
 
 // ---------------------------------------------------------------- Usuários (contas de acesso)
@@ -29,8 +30,8 @@ export const usuarioCfg: ResourceConfig = {
   searchable: false,
   fields: [
     { name: 'usuarioLogin', label: 'Login', col: 'usuario_login', type: 'text', required: true, maxLength: 100, placeholder: 'seu.login' },
-    { name: 'senha', label: 'Senha', col: 'senha (mín. 8 caracteres)', type: 'password', required: true, mode: 'create', placeholder: '••••••••', validate: (v) => (String(v).length >= 8 ? null : 'A senha deve ter pelo menos 8 caracteres.') },
-    { name: 'novaSenha', label: 'Nova senha (opcional)', col: 'trocar senha', type: 'password', mode: 'edit', placeholder: 'Deixe em branco para manter', validate: (v) => (String(v).length >= 8 ? null : 'A senha deve ter pelo menos 8 caracteres.') },
+    { name: 'senha', label: 'Senha', col: 'senha', type: 'password', required: true, mode: 'create', placeholder: '••••••••', fkNote: SENHA_DICA, validate: (v) => validarSenha(String(v)) },
+    { name: 'novaSenha', label: 'Nova senha (opcional)', col: 'trocar senha', type: 'password', mode: 'edit', placeholder: 'Deixe em branco para manter', fkNote: SENHA_DICA, validate: (v) => validarSenha(String(v)) },
     {
       name: 'usuarioPerfil',
       label: 'Perfil',
