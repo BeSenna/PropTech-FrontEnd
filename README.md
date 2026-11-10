@@ -33,16 +33,19 @@ O frontend **não fala direto** com o backend. Toda chamada à API passa pelo **
 Navegador
    │  http://academico3.rj.senac.br/condominio ............ este frontend  (porta 7520)
    │
-   └─► /condominio/gateway/morador/...  ──► Gateway (7521) ──► MS Moradores (7522)
-                                                               /condominio/morador/...
+   ├─► /condominio/gateway/morador/...    ──► Gateway (7521) ──► MS Moradores (7522)
+   │                                                              /condominio/morador/...
+   └─► /condominio/gateway/financeiro/... ──► Gateway (7521) ──► MS Financeiro (7523)
+                                                                  /condominio/financeiro/...
 ```
 
 - O site é publicado num **subcaminho** (`/condominio`), por isso existe a variável `NEXT_PUBLIC_BASE_PATH`.
-- O navegador chama um caminho **relativo** (`/condominio/gateway/morador`), no mesmo endereço do site: por isso não há problema de CORS.
+- O navegador chama caminhos **relativos** (`/condominio/gateway/morador` e `/condominio/gateway/financeiro`), no mesmo endereço do site: por isso não há problema de CORS.
+- O login é feito no **MS Moradores**; o mesmo token (JWT) é enviado ao **MS Financeiro**, que o valida com o mesmo `JWT_SECRET`.
 - O **gateway** precisa repassar o header `Authorization`, os métodos `PATCH`/`DELETE` e os corpos de erro (400/401/403) **sem alterar**. Se ele não fizer isso, o front falha em produção mesmo estando tudo certo no código.
 
 Repositórios do projeto:
-[Backend — MS Moradores](https://github.com/BeSenna/Moradores-Proptech) (branch `feat/prisma-7`) · este frontend.
+[Backend — MS Moradores](https://github.com/BeSenna/Moradores-Proptech) (branch `feat/prisma-7`) · [Backend — MS Financeiro](https://github.com/Mathias-byte/TecWeb2Ava1) · este frontend.
 
 ## 2. O que é real e o que é simulado
 
@@ -50,10 +53,12 @@ Repositórios do projeto:
 |---|---|
 | Login, Blocos, Imóveis, Moradores, Relação (vínculos), Usuários | **API real** — MS Moradores, via gateway |
 | Portal do Morador → "Meu Imóvel" | **API real** |
-| Financeiro (cobranças, pagamentos, despesas, receitas) | **Simulado** — guardado no `localStorage` do navegador |
+| Financeiro (cobranças, boletos, pagamentos, despesas, receitas) e Portal do Morador → "Financeiro" | **API real** — MS Financeiro, via gateway |
 | Serviços (áreas comuns, reservas, ocorrências, manutenções, avisos) | **Simulado** — guardado no `localStorage` do navegador |
 
-Os microsserviços de Financeiro e Serviços ainda não existem. Telas simuladas mostram a etiqueta **DADOS SIMULADOS**. Os dados simulados ficam só no seu navegador: não vão para o banco e cada pessoa vê os seus. Quando esses serviços existirem, trocar o mock pela API não muda nenhuma tela (ver [seção 9](#9-estrutura-do-código)).
+O microsserviço de Serviços ainda não existe. Suas telas mostram a etiqueta **DADOS SIMULADOS**; esses dados ficam só no seu navegador: não vão para o banco e cada pessoa vê os seus. Quando o serviço existir, trocar o mock pela API não muda nenhuma tela (ver [seção 9](#9-estrutura-do-código)).
+
+No Financeiro, o síndico gerencia tudo; o **morador só consulta** as cobranças, boletos e pagamentos do(s) imóvel(is) dele. Registrar um pagamento atualiza sozinho a situação da cobrança. "Excluir" nunca apaga: o registro fica inativo.
 
 ---
 
@@ -99,7 +104,7 @@ npm run dev
 
 Abra <http://localhost:3000/login>. Use **`localhost`** (e não `127.0.0.1`): em desenvolvimento o Next.js pode bloquear a página aberta por outro endereço.
 
-> Em desenvolvimento, o próprio Next.js faz o papel do gateway: ele encaminha `/condominio/gateway/morador/*` para o backend em `http://localhost:7522` (variável `API_PROXY_TARGET`). Por isso o backend tem que estar no ar.
+> Em desenvolvimento, o próprio Next.js faz o papel do gateway: ele encaminha `/condominio/gateway/morador/*` para o MS Moradores em `http://localhost:7522` (`API_PROXY_TARGET`) e `/condominio/gateway/financeiro/*` para o MS Financeiro em `http://localhost:7523` (`FINANCEIRO_PROXY_TARGET`). Por isso os dois backends têm que estar no ar para usar o Financeiro.
 
 ### Passo 5 — Entre
 
@@ -118,7 +123,9 @@ O frontend **não tem segredos**. As variáveis `NEXT_PUBLIC_*` são gravadas no
 |---|---|---|---|
 | `NEXT_PUBLIC_BASE_PATH` | Subcaminho onde o site é publicado | vazio | `/condominio` |
 | `NEXT_PUBLIC_API_URL` | Base da API **como o navegador a enxerga** (via gateway) | `/condominio/gateway/morador` | `/condominio/gateway/morador` |
-| `API_PROXY_TARGET` | Só no `npm run dev`: endereço do backend para onde o Next encaminha as chamadas | `http://localhost:7522` | *(não usar)* |
+| `NEXT_PUBLIC_FINANCEIRO_API_URL` | Base da API do Financeiro **como o navegador a enxerga** (via gateway) | `/condominio/gateway/financeiro` | `/condominio/gateway/financeiro` |
+| `API_PROXY_TARGET` | Só no `npm run dev`: endereço do MS Moradores para onde o Next encaminha as chamadas | `http://localhost:7522` | *(não usar)* |
+| `FINANCEIRO_PROXY_TARGET` | Só no `npm run dev`: endereço do MS Financeiro | `http://localhost:7523` | *(não usar)* |
 
 Duas regras importantes:
 
@@ -146,7 +153,7 @@ Com o backend e o frontend no ar:
 7. No portal, abra **Meu Imóvel**: deve aparecer o imóvel que você vinculou.
 8. Como morador, tente abrir uma URL do painel do síndico (ex.: `/blocos`): você é redirecionado. O morador só enxerga os próprios dados.
 
-Para **zerar os dados simulados** (Financeiro/Serviços), abra o console do navegador (F12) e rode:
+Para **zerar os dados simulados** (Serviços), abra o console do navegador (F12) e rode:
 ```js
 Object.keys(localStorage).filter(k => k.startsWith('proptech.mock.')).forEach(k => localStorage.removeItem(k))
 ```
@@ -245,18 +252,18 @@ src/
   lib/                     format (CPF, datas, dinheiro), labels, senha (política de senha)
   mock/                    store (localStorage) + dados de demonstração
   models/                  types (formato dos dados e das configurações), sessao
-  resources/               configuração de cada recurso (moradores/ = API real, simulados/ = mock)
-  services/                http (fetch, erros, JWT), authService, moradorService (chamadas à API)
+  resources/               configuração de cada recurso (moradores/ e financeiro/ = API real, simulados/ = mock)
+  services/                http (fetch, erros, JWT), authService, moradorService e financeiroService (chamadas à API)
 ```
 
 **Como as telas nascem:** as telas de lista, novo, detalhe e editar são **genéricas**. Cada recurso (bloco, imóvel, morador…) é descrito por uma configuração (`ResourceConfig`): campos, colunas, filtros e como converter o formulário em dados da API.
 
 **Para adicionar um recurso novo:**
-1. Crie o `ResourceConfig` em `src/resources/moradores/` (API real) ou `src/resources/simulados/` (mock).
+1. Crie o `ResourceConfig` em `src/resources/moradores/` ou `src/resources/financeiro/` (API real) ou `src/resources/simulados/` (mock).
 2. Exporte no `index.ts` da pasta e inclua em `RESOURCES` (`src/resources/index.ts`).
 3. As quatro telas aparecem sozinhas nas rotas `[recurso]`.
 
-**Trocar um mock pela API real:** os mocks e a API usam a mesma interface (`Adapter`, em `src/services/moradorService.ts` e `src/mock/store.ts`). Troque o adaptador do recurso e nenhuma tela precisa mudar.
+**Trocar um mock pela API real:** os mocks e a API usam a mesma interface (`Adapter`, em `src/services/moradorService.ts` — `makeApiAdapter(caminho, serviço)` — e `src/mock/store.ts`). Troque o adaptador do recurso e nenhuma tela precisa mudar.
 
 ---
 
@@ -303,5 +310,8 @@ src/
 | Container sobe, mas o login mostra erro de conexão com a API | A imagem não tem o proxy de desenvolvimento; o gateway não está acessível | Em teste local use `npm run dev`; em produção confira o gateway |
 | Em produção: 401 após o login, ou PATCH/DELETE falham | O gateway não repassa `Authorization` ou bloqueia os métodos | Corrija no gateway (veja a [seção 1](#1-como-o-sistema-se-encaixa)) |
 | Mensagens de erro da API não aparecem | O gateway troca o corpo das respostas de erro | O gateway precisa repassar os corpos 400/401/403 sem alterar |
-| Dados do Financeiro/Serviços sumiram | São simulados e ficam no navegador | Normal ao trocar de navegador ou limpar os dados do site |
+| Dados de Serviços sumiram | São simulados e ficam no navegador | Normal ao trocar de navegador ou limpar os dados do site |
+| Financeiro: "Não foi possível falar com a API. Verifique se o MS Financeiro está rodando." | MS Financeiro desligado, ou `FINANCEIRO_PROXY_TARGET` ausente no `.env.local` | Suba o MS Financeiro e confira `FINANCEIRO_PROXY_TARGET=http://localhost:7523`; reinicie o `npm run dev` |
+| Financeiro: 401 logo após entrar | O `JWT_SECRET` do MS Financeiro é diferente do MS Moradores | Use o mesmo valor nos dois (Infisical) |
+| Portal: "Nenhuma cobrança encontrada" para um morador com cobranças | O token foi emitido antes do Moradores passar a incluir os imóveis | Sair e entrar de novo |
 | Tela sem a fonte Inter | Sem acesso ao Google Fonts | Sem problema: o navegador usa a fonte do sistema |

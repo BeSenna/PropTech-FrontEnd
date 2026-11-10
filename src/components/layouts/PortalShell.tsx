@@ -7,7 +7,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { ErrorBox, Loading, cx } from "@/components/ui";
 import { iniciais } from "@/lib/format";
 import type { Rec } from "@/models/types";
-import { blocoLetra, imovelRotulo, moradorApi } from "@/services/moradorService";
+import { imovelRotulo, moradorApi } from "@/services/moradorService";
 import { semearPortal } from "@/mock/data";
 
 export interface PortalCtx {
@@ -54,7 +54,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
         const v = vs.find((x) => !x.moradorImovelDataFim || new Date(x.moradorImovelDataFim) > new Date()) ?? vs[0] ?? null;
         const imovelLabel = v ? imovelRotulo(v.imovel, undefined).replace(/ · .*/, "") : "";
         const blocoNome = v?.imovel?.bloco?.blocoNome ?? "";
-        semearPortal(m.moradorId, m.moradorNome, v?.imovelId ?? null, imovelLabel, blocoLetra(blocoNome));
+        semearPortal(m.moradorId, m.moradorNome);
         if (vivo) setCtx({ moradorId: m.moradorId, nome: m.moradorNome, vinculo: v, imovelId: v?.imovelId ?? null, imovelLabel, blocoNome, morador: m });
       } catch (e) {
         if (vivo) setErro((e as Error).message);

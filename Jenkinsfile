@@ -15,6 +15,7 @@ pipeline {
         APP_PORT                 = '7520'
         NEXT_PUBLIC_BASE_PATH    = '/condominio'                    // site publicado em http://academico3.rj.senac.br/condominio
         NEXT_PUBLIC_API_URL      = '/condominio/gateway/morador'    // MS Moradores, visto pelo navegador, via gateway
+        NEXT_PUBLIC_FINANCEIRO_API_URL = '/condominio/gateway/financeiro' // MS Financeiro, visto pelo navegador, via gateway
     }
 
     stages {

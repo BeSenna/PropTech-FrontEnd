@@ -7,7 +7,7 @@ import { useAuth } from "@/auth/AuthContext";
 import { cx, searchCls } from "@/components/ui";
 import { iniciais } from "@/lib/format";
 import { totalDe } from "@/services/moradorService";
-import { areaStore, avisoStore, cobrancaStore, despesaStore, manutencaoStore, ocorrenciaStore, pagamentoStore, receitaStore, reservaStore } from "@/mock/data";
+import { areaStore, avisoStore, manutencaoStore, ocorrenciaStore, reservaStore } from "@/mock/data";
 
 const ROTULOS: Record<string, string> = {
   cadastros: "Cadastros",
@@ -18,6 +18,7 @@ const ROTULOS: Record<string, string> = {
   usuarios: "Usuários",
   financeiro: "Financeiro",
   cobrancas: "Cobranças",
+  boletos: "Boletos",
   pagamentos: "Pagamentos",
   despesas: "Despesas",
   receitas: "Receitas",
@@ -35,20 +36,24 @@ async function carregarContagens(): Promise<Counts> {
   const c: Counts = {
     areas: areaStore.count(),
     reservas: reservaStore.count(),
-    cobrancas: cobrancaStore.count(),
-    pagamentos: pagamentoStore.count(),
-    despesas: despesaStore.count(),
-    receitas: receitaStore.count(),
     ocorrencias: ocorrenciaStore.count(),
     manutencoes: manutencaoStore.count(),
     avisos: avisoStore.count(),
   };
-  try {
-    const [b, i, m, v] = await Promise.all([totalDe("/bloco"), totalDe("/imovel"), totalDe("/morador"), totalDe("/morador-imovel")]);
+  // cada serviço é consultado à parte: se um estiver fora do ar, o menu do outro continua com as contagens
+  const [mor, fin] = await Promise.allSettled([
+    Promise.all([totalDe("/bloco"), totalDe("/imovel"), totalDe("/morador"), totalDe("/morador-imovel")]),
+    Promise.all(["/cobrancas", "/boletos", "/pagamentos", "/despesas", "/receitas"].map((p) => totalDe(p, {}, "financeiro"))),
+  ]);
+  if (mor.status === "fulfilled") {
+    const [b, i, m, v] = mor.value;
     Object.assign(c, { blocos: b, imoveis: i, moradores: m, vinculos: v });
-  } catch {
-    /* API fora do ar: o conteúdo das telas mostra o erro; o menu segue sem contagem */
   }
+  if (fin.status === "fulfilled") {
+    const [co, bo, pa, de, re] = fin.value;
+    Object.assign(c, { cobrancas: co, boletos: bo, pagamentos: pa, despesas: de, receitas: re });
+  }
+  // API fora do ar: o conteúdo das telas mostra o erro; o menu segue sem contagem
   return c;
 }
 
@@ -124,6 +129,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
         <Grupo>Financeiro</Grupo>
         <Item to="/financeiro" label="Visão Geral" />
         <Item to="/cobrancas" label="Cobranças" n={counts.cobrancas} />
+        <Item to="/boletos" label="Boletos" n={counts.boletos} />
         <Item to="/pagamentos" label="Pagamentos" n={counts.pagamentos} sub />
         <Item to="/despesas" label="Despesas" n={counts.despesas} />
         <Item to="/receitas" label="Receitas" n={counts.receitas} />

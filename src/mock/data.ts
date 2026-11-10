@@ -1,67 +1,6 @@
-import type { Rec } from '../models/types';
 import { createMock } from './store';
 
-// Dados de demonstração (os mesmos exemplos do protótipo no Figma).
-const cobranca = (imovel: string, bloco: string, comp: string, valor: number, venc: string, tipo: string, status = 1, desc = 'Taxa condominial ordinária'): Rec => ({
-  imovel_id: null,
-  imovel_label: imovel,
-  bloco_nome: bloco,
-  cobranca_descricao: desc,
-  cobranca_competencia: comp,
-  cobranca_valor: valor,
-  cobranca_vencimento: venc,
-  cobranca_tipo: tipo,
-  cobranca_data_criacao: comp + 'T06:00',
-  cobranca_status: status,
-  boleto_linha_digitavel: '3419.8172 6009.0128 3000.0000 5 9' + String(valor).slice(0, 3),
-  boleto_data_emissao: comp,
-});
-
-export const cobrancaStore = createMock(
-  'cobranca',
-  () => [
-    cobranca('Apto 101', 'A', '2026-09-01', 850, '2026-09-10', 'PENDENTE'),
-    cobranca('Apto 102', 'A', '2026-09-01', 850, '2026-09-10', 'PAGO'),
-    cobranca('Cob. 601', 'A', '2026-08-01', 1450, '2026-08-10', 'VENCIDO'),
-    cobranca('Apto 201', 'A', '2026-07-01', 850, '2026-07-10', 'CANCELADO', 0),
-    cobranca('Apto 203', 'B', '2026-09-01', 850, '2026-09-10', 'PENDENTE'),
-    cobranca('Apto 305', 'B', '2026-09-01', 850, '2026-09-10', 'PAGO'),
-  ],
-  ['imovel_label', 'cobranca_competencia', 'cobranca_descricao'],
-  'cobranca_status',
-);
-
-export const pagamentoStore = createMock(
-  'pagamento',
-  () => [
-    { cobranca_id: 2, cobranca_label: 'Apto 102 · Set/2026 · R$ 850,00', competencia_txt: 'Set/2026', imovel_label: 'Apto 102', bloco_nome: 'A', pagamento_valor_pago: 850, pagamento_data_pagamento: '2026-09-03', pagamento_forma_pagamento: 'PIX', pagamento_observacao: '', pagamento_status: 1 },
-    { cobranca_id: 6, cobranca_label: 'Apto 305 · Set/2026 · R$ 850,00', competencia_txt: 'Set/2026', imovel_label: 'Apto 305', bloco_nome: 'B', pagamento_valor_pago: 850, pagamento_data_pagamento: '2026-09-09', pagamento_forma_pagamento: 'BOLETO', pagamento_observacao: '', pagamento_status: 1 },
-  ],
-  ['imovel_label', 'competencia_txt', 'pagamento_forma_pagamento'],
-  'pagamento_status',
-);
-
-export const despesaStore = createMock(
-  'despesa',
-  () => [
-    { despesa_descricao: 'Manutenção do elevador social', despesa_fornecedor: 'ElevaTech Manutenção Ltda', despesa_valor: 2400, despesa_data_despesa: '2026-09-05', despesa_categoria: 'Manutenção', despesa_status: 1 },
-    { despesa_descricao: 'Produtos de limpeza mensal', despesa_fornecedor: 'Limpa Fácil Distribuidora', despesa_valor: 680, despesa_data_despesa: '2026-09-03', despesa_categoria: 'Limpeza', despesa_status: 1 },
-    { despesa_descricao: 'Contrato de portaria 24h', despesa_fornecedor: 'SegVigil Segurança Patrimonial', despesa_valor: 8900, despesa_data_despesa: '2026-09-01', despesa_categoria: 'Segurança', despesa_status: 1 },
-  ],
-  ['despesa_descricao', 'despesa_fornecedor'],
-  'despesa_status',
-);
-
-export const receitaStore = createMock(
-  'receita',
-  () => [
-    { receita_descricao: 'Aluguel do salão de festas — setembro', receita_valor: 1200, receita_data_receita: '2026-09-05', receita_categoria: 'Aluguel de área', receita_status: 1 },
-    { receita_descricao: 'Multa por obra irregular — Bloco B', receita_valor: 450, receita_data_receita: '2026-09-02', receita_categoria: 'Multas', receita_status: 1 },
-    { receita_descricao: 'Aluguel de vaga extra de garagem', receita_valor: 180, receita_data_receita: '2026-09-01', receita_categoria: 'Aluguel de área', receita_status: 1 },
-  ],
-  ['receita_descricao', 'receita_categoria'],
-  'receita_status',
-);
+// Dados de demonstração do módulo Serviços (mock no navegador). O Financeiro usa a API real (MS Financeiro).
 
 export const areaStore = createMock(
   'area_comum',
@@ -121,9 +60,9 @@ export const avisoStore = createMock(
 
 /**
  * Portal do morador: na primeira entrada de um morador, cria exemplos ligados a ele
- * (reservas, ocorrências e cobranças) para a tela não ficar vazia na demonstração.
+ * (reservas e ocorrências) para a tela não ficar vazia na demonstração.
  */
-export function semearPortal(moradorId: number, nome: string, imovelId: number | null, imovelLabel: string, blocoNome: string) {
+export function semearPortal(moradorId: number, nome: string) {
   const jaTem = reservaStore.all().some((r) => r.reserva_morador_id === moradorId);
   if (jaTem) return;
   reservaStore.insertMany([
@@ -135,21 +74,4 @@ export function semearPortal(moradorId: number, nome: string, imovelId: number |
     { ocorrencia_morador_id: moradorId, morador_nome: nome, ocorrencia_titulo: 'Lâmpada queimada no corredor B', ocorrencia_descricao: 'Corredor do 3º andar', ocorrencia_data_ocorrencia: '2026-09-02T18:00', ocorrencia_tipo: 'FINALIZADA', ocorrencia_status: 1 },
     { ocorrencia_morador_id: moradorId, morador_nome: nome, ocorrencia_titulo: 'Barulho excessivo — Apto 201', ocorrencia_descricao: 'Som alto após as 22h', ocorrencia_data_ocorrencia: '2026-09-08T22:40', ocorrencia_tipo: 'EM_ANDAMENTO', ocorrencia_status: 1 },
   ]);
-  const c = (comp: string, venc: string, tipo: string) => ({
-    imovel_id: imovelId,
-    imovel_label: imovelLabel,
-    bloco_nome: blocoNome,
-    cobranca_descricao: 'Taxa condominial ordinária',
-    cobranca_competencia: comp,
-    cobranca_valor: 850,
-    cobranca_vencimento: venc,
-    cobranca_tipo: tipo,
-    cobranca_data_criacao: comp + 'T06:00',
-    cobranca_status: 1,
-    boleto_linha_digitavel: '3419.8172 6009.0128 3000.0000 5 98500',
-    boleto_data_emissao: comp,
-  });
-  if (imovelId) {
-    cobrancaStore.insertMany([c('2026-07-01', '2026-07-10', 'VENCIDO'), c('2026-08-01', '2026-08-10', 'PAGO'), c('2026-09-01', '2026-09-10', 'PENDENTE')]);
-  }
 }

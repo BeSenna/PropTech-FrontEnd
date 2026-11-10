@@ -7,8 +7,10 @@ COPY . .
 # NEXT_PUBLIC_* são gravadas no build: mudou o valor, rebuild da imagem.
 ARG NEXT_PUBLIC_BASE_PATH=""
 ARG NEXT_PUBLIC_API_URL="/condominio/gateway/morador"
+ARG NEXT_PUBLIC_FINANCEIRO_API_URL="/condominio/gateway/financeiro"
 ENV NEXT_PUBLIC_BASE_PATH=$NEXT_PUBLIC_BASE_PATH \
     NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_FINANCEIRO_API_URL=$NEXT_PUBLIC_FINANCEIRO_API_URL \
     NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 

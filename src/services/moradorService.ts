@@ -1,17 +1,18 @@
 // Adaptadores do MS Moradores (API real) + consultas auxiliares usadas em selects e listagens.
-import { http } from '@/services/http';
+import { http, type Servico } from '@/services/http';
 import type { Adapter, ListParams, Option, Paged, Rec } from '@/models/types';
 
-export function makeApiAdapter(path: string): Adapter {
+export function makeApiAdapter(path: string, servico: Servico = 'morador'): Adapter {
   return {
     list: (p: ListParams) =>
       http<Paged>(path, {
+        servico,
         query: { page: p.page, pageSize: p.pageSize, busca: p.busca, ...(p.filters ?? {}) },
       }),
-    get: (id) => http<Rec>(`${path}/${id}`),
-    create: (v) => http<Rec>(path, { method: 'POST', body: v }),
-    update: (id, v) => http<Rec>(`${path}/${id}`, { method: 'PATCH', body: v }),
-    remove: (id) => http(`${path}/${id}`, { method: 'DELETE' }),
+    get: (id) => http<Rec>(`${path}/${id}`, { servico }),
+    create: (v) => http<Rec>(path, { servico, method: 'POST', body: v }),
+    update: (id, v) => http<Rec>(`${path}/${id}`, { servico, method: 'PATCH', body: v }),
+    remove: (id) => http(`${path}/${id}`, { servico, method: 'DELETE' }),
   };
 }
 
@@ -47,9 +48,9 @@ async function memo<T>(key: string, fn: () => Promise<T>, ttl = 15_000): Promise
 }
 export const limparCache = () => cache.clear();
 
-export async function todos(path: string, extra: Record<string, string | number> = {}): Promise<Rec[]> {
-  return memo(`all:${path}:${JSON.stringify(extra)}`, async () => {
-    const r = await http<Paged>(path, { query: { page: 1, pageSize: 500, ...extra } });
+export async function todos(path: string, extra: Record<string, string | number> = {}, servico: Servico = 'morador'): Promise<Rec[]> {
+  return memo(`all:${servico}:${path}:${JSON.stringify(extra)}`, async () => {
+    const r = await http<Paged>(path, { servico, query: { page: 1, pageSize: 500, ...extra } });
     return r.data;
   });
 }
@@ -81,8 +82,8 @@ export const loadImovelOptions = async (): Promise<Option[]> => {
   return imoveis.map((i) => ({ value: i.imovelId, label: imovelRotulo(i, blocos[i.blocoId]) }));
 };
 
-export async function totalDe(path: string, filters: Record<string, string | number | undefined> = {}): Promise<number> {
-  const r = await http<Paged>(path, { query: { page: 1, pageSize: 1, ...filters } });
+export async function totalDe(path: string, filters: Record<string, string | number | undefined> = {}, servico: Servico = 'morador'): Promise<number> {
+  const r = await http<Paged>(path, { servico, query: { page: 1, pageSize: 1, ...filters } });
   return r.total;
 }
 

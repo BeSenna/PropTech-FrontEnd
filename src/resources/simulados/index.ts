@@ -1,8 +1,4 @@
-// Recursos dos módulos Financeiro e Serviços (dados simulados no navegador): um arquivo por recurso.
-export { cobrancaCfg } from './cobranca';
-export { pagamentoCfg } from './pagamento';
-export { despesaCfg } from './despesa';
-export { receitaCfg } from './receita';
+// Recursos do módulo Serviços (dados simulados no navegador): um arquivo por recurso.
 export { areaCfg } from './area';
 export { reservaCfg } from './reserva';
 export { ocorrenciaCfg } from './ocorrencia';

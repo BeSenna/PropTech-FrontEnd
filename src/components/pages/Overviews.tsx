@@ -1,12 +1,11 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ErrorBox, MockTag, ModuleCard, ModuleGrid, PageHeader, SectionLabel, StatCard, StatGrid } from "@/components/ui";
 import { fmtMoney } from "@/lib/format";
 import { useStatsMoradores } from "@/hooks/useStatsMoradores";
-import { areaStore, avisoStore, cobrancaStore, despesaStore, ocorrenciaStore, pagamentoStore, receitaStore, reservaStore } from "@/mock/data";
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const soma = (xs: { [k: string]: any }[], k: string) => xs.reduce((s, r) => s + Number(r[k] || 0), 0);
+import { areaStore, avisoStore, ocorrenciaStore, reservaStore } from "@/mock/data";
+import { resumoFinanceiro, type ResumoFinanceiro } from "@/services/financeiroService";
 
 const CAD_MODULES = (
   <ModuleGrid>
@@ -61,31 +60,33 @@ export function CadastrosOverview() {
 }
 
 export function FinanceiroOverview() {
-  const cob = cobrancaStore.all().filter((c) => c.cobranca_status === 1);
-  const pendentes = soma(cob.filter((c) => c.cobranca_tipo === "PENDENTE" || c.cobranca_tipo === "VENCIDO"), "cobranca_valor");
-  const recebido = soma(pagamentoStore.all().filter((p) => p.pagamento_status === 1), "pagamento_valor_pago");
-  const despesas = soma(despesaStore.all().filter((d) => d.despesa_status === 1), "despesa_valor");
-  const receitas = soma(receitaStore.all().filter((r) => r.receita_status === 1), "receita_valor");
+  const [r, setR] = useState<ResumoFinanceiro | null>(null);
+  const [erro, setErro] = useState("");
+  useEffect(() => {
+    let vivo = true;
+    resumoFinanceiro()
+      .then((x) => vivo && setR(x))
+      .catch((e) => vivo && setErro((e as Error).message));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  const v = (n?: number) => (n === undefined ? "—" : fmtMoney(n));
   return (
     <>
-      <PageHeader
-        title="Financeiro"
-        sub={
-          <>
-            Visão geral financeira do condomínio Jardim das Palmeiras.
-            <MockTag />
-          </>
-        }
-      />
+      <PageHeader title="Financeiro" sub="Visão geral financeira do condomínio Jardim das Palmeiras." />
+      {erro && <ErrorBox>{erro}</ErrorBox>}
+      {r?.parcial && <ErrorBox>Há mais de 500 registros em algum total; os valores abaixo consideram só os 500 mais recentes de cada tipo.</ErrorBox>}
       <StatGrid>
-        <StatCard value={fmtMoney(pendentes)} label="Cobranças pendentes" color="navy" />
-        <StatCard value={fmtMoney(recebido)} label="Recebido (confirmado)" color="green" />
-        <StatCard value={fmtMoney(despesas)} label="Despesas ativas" color="amber" />
-        <StatCard value={fmtMoney(receitas)} label="Receitas extras" color="pink" />
+        <StatCard value={v(r?.pendentes)} label="Cobranças em aberto" color="navy" />
+        <StatCard value={v(r?.recebido)} label="Recebido (confirmado)" color="green" />
+        <StatCard value={v(r?.despesas)} label="Despesas ativas" color="amber" />
+        <StatCard value={v(r?.receitas)} label="Receitas extras" color="pink" />
       </StatGrid>
       <SectionLabel>Módulos</SectionLabel>
       <ModuleGrid>
         <ModuleCard icon="🧾" title="Cobranças" desc="Valor, vencimento" to="/cobrancas" tint="#cffafe" />
+        <ModuleCard icon="🏷️" title="Boletos" desc="Linha digitável, PDF" to="/boletos" tint="#fef3c7" />
         <ModuleCard icon="💳" title="Pagamentos" desc="Forma, valor pago" to="/pagamentos" tint="#ede9fe" />
         <ModuleCard icon="📤" title="Despesas" desc="Fornecedor, categoria" to="/despesas" tint="#fee2e2" />
         <ModuleCard icon="📥" title="Receitas" desc="Categoria, valor" to="/receitas" tint="#d1fae5" />

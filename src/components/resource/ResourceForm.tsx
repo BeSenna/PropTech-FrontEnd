@@ -10,7 +10,12 @@ import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const moneyToNumber = (s: unknown) => Number(String(s).replace(/\./g, "").replace(",", "."));
-const moneyToText = (v: unknown) => (v === "" || v === null || v === undefined ? "" : String(v).replace(".", ","));
+// "850.5" (a API manda dinheiro como texto, sem zero à direita) → "850,50"
+const moneyToText = (v: unknown) => {
+  if (v === "" || v === null || v === undefined) return "";
+  const n = Number(v);
+  return Number.isFinite(n) ? n.toFixed(2).replace(".", ",") : String(v).replace(".", ",");
+};
 
 const labelCls = "text-[11.5px] font-bold text-ink-2";
 
