@@ -66,7 +66,7 @@ pipeline {
                 '''
                 // Falha aqui deixa o build "instável" (amarelo), sem derrubar o deploy já feito.
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                    bat '''docker exec %APP_NAME% node -e "const t=async()=>{for(let i=0;i<10;i++){try{const r=await fetch('http://localhost:7520/condominio/login');if(r.ok){console.log('Frontend respondendo.');return}}catch(e){}await new Promise(r=>setTimeout(r,3000))}console.log('Frontend nao respondeu a tempo.');process.exit(1)};t()"'''
+                    bat '''docker exec %APP_NAME% node -e "const t=async()=>{for(let i=0;i<10;i++){try{const r=await fetch('http://localhost:7520/condominio');if(r.ok){console.log('Frontend respondendo.');return}}catch(e){}await new Promise(r=>setTimeout(r,3000))}console.log('Frontend nao respondeu a tempo.');process.exit(1)};t()"'''
                 }
             }
         }

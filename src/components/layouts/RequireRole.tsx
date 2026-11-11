@@ -9,7 +9,7 @@ import { Loading } from "@/components/ui";
 export function RequireRole({ role, children }: { role: "SINDICO" | "MORADOR"; children: ReactNode }) {
   const { user, ready } = useAuth();
   const router = useRouter();
-  const destino = !ready ? null : !user ? "/login" : user.usuarioPerfil !== role ? (user.usuarioPerfil === "SINDICO" ? "/" : "/portal") : null;
+  const destino = !ready ? null : !user ? "/" : user.usuarioPerfil !== role ? (user.usuarioPerfil === "SINDICO" ? "/dashboard" : "/portal") : null;
 
   useEffect(() => {
     if (destino) router.replace(destino);

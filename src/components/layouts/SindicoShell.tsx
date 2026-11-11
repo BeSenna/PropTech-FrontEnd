@@ -57,9 +57,12 @@ async function carregarContagens(): Promise<Counts> {
   return c;
 }
 
+// o Dashboard (início do síndico) fica sem o marcador de bolinha dos demais itens
+const INICIO = "/dashboard";
+
 function Item({ to, label, n, sub }: { to: string; label: string; n?: number; sub?: boolean }) {
   const path = usePathname();
-  const ativo = to === "/" ? path === "/" : path === to || path.startsWith(`${to}/`);
+  const ativo = path === to || path.startsWith(`${to}/`);
   return (
     <Link
       href={to}
@@ -67,9 +70,9 @@ function Item({ to, label, n, sub }: { to: string; label: string; n?: number; su
         "my-0.5 flex items-center gap-2.5 rounded-[10px] py-[9px] pr-3 font-medium",
         sub ? "pl-[22px]" : "pl-3",
         ativo ? "bg-accent font-bold text-navy" : "text-side hover:bg-white/7",
-        to !== "/" && "before:flex-none before:rounded-full before:content-['']",
-        to !== "/" && (sub ? "before:size-1" : "before:size-1.5"),
-        to !== "/" && (ativo ? "before:bg-navy/45" : "before:bg-side-muted"),
+        to !== INICIO && "before:flex-none before:rounded-full before:content-['']",
+        to !== INICIO && (sub ? "before:size-1" : "before:size-1.5"),
+        to !== INICIO && (ativo ? "before:bg-navy/45" : "before:bg-side-muted"),
       )}
     >
       {label}
@@ -96,8 +99,8 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
   }, [pathname]);
 
   const segs = pathname.split("/").filter(Boolean);
-  const crumbs: { label: string; to?: string }[] = [{ label: "Dashboard", to: "/" }];
-  if (segs[0]) crumbs.push({ label: ROTULOS[segs[0]] ?? segs[0], to: segs.length > 1 ? `/${segs[0]}` : undefined });
+  const crumbs: { label: string; to?: string }[] = [{ label: "Dashboard", to: INICIO }];
+  if (segs[0] && segs[0] !== "dashboard") crumbs.push({ label: ROTULOS[segs[0]] ?? segs[0], to: segs.length > 1 ? `/${segs[0]}` : undefined });
   if (segs[1]) crumbs.push({ label: segs[1] === "novo" ? "Novo" : `#${segs[1]}`, to: segs[2] ? `/${segs[0]}/${segs[1]}` : undefined });
   if (segs[2]) crumbs.push({ label: "Editar" });
 
@@ -116,7 +119,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <div className="mt-1.5 mb-1 text-[10px] font-bold tracking-[0.04em] text-[#7c8ac2] uppercase">Início</div>
-        <Item to="/" label="Dashboard" />
+        <Item to={INICIO} label="Dashboard" />
 
         <Grupo>Cadastros</Grupo>
         <Item to="/cadastros" label="Visão Geral" />

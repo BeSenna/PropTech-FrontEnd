@@ -16,7 +16,7 @@ export default function Login() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (ready && user) router.replace(user.usuarioPerfil === "SINDICO" ? "/" : "/portal");
+    if (ready && user) router.replace(user.usuarioPerfil === "SINDICO" ? "/dashboard" : "/portal");
   }, [ready, user, router]);
 
   const enviar = async (e: FormEvent) => {

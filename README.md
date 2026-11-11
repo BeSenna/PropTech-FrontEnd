@@ -102,7 +102,7 @@ O `.env.local` já vem pronto para desenvolvimento (veja [Variáveis de ambiente
 npm run dev
 ```
 
-Abra <http://localhost:3000/login>. Use **`localhost`** (e não `127.0.0.1`): em desenvolvimento o Next.js pode bloquear a página aberta por outro endereço.
+Abra <http://localhost:3000/> (a raiz do site é a tela de login; `/login` só redireciona para ela). Depois de entrar, o síndico vai para `/dashboard` e o morador para `/portal`. Use **`localhost`** (e não `127.0.0.1`): em desenvolvimento o Next.js pode bloquear a página aberta por outro endereço.
 
 > Em desenvolvimento, o próprio Next.js faz o papel do gateway: ele encaminha `/condominio/gateway/morador/*` para o MS Moradores em `http://localhost:7522` (`API_PROXY_TARGET`) e `/condominio/gateway/financeiro/*` para o MS Financeiro em `http://localhost:7523` (`FINANCEIRO_PROXY_TARGET`). Por isso os dois backends têm que estar no ar para usar o Financeiro.
 
@@ -130,7 +130,7 @@ O frontend **não tem segredos**. As variáveis `NEXT_PUBLIC_*` são gravadas no
 Duas regras importantes:
 
 1. **`NEXT_PUBLIC_*` são lidas no build.** Se mudar o valor, é preciso gerar o build de novo (`npm run dev` reinicia sozinho; no Docker, rode `docker compose up -d --build`).
-2. **Com `NEXT_PUBLIC_BASE_PATH=/condominio`, o site passa a responder em `/condominio/...`** (por exemplo `http://localhost:3000/condominio/login`). Em desenvolvimento deixe vazio para usar `http://localhost:3000/login`.
+2. **Com `NEXT_PUBLIC_BASE_PATH=/condominio`, o site passa a responder em `/condominio/...`** (por exemplo `http://localhost:3000/condominio`). Em desenvolvimento deixe vazio para usar `http://localhost:3000/login`.
 
 Em produção, quem define essas variáveis é o pipeline do Jenkins (veja a [seção 7](#7-publicar-no-servidor-jenkins)), e não um arquivo `.env`.
 
@@ -168,12 +168,12 @@ Object.keys(localStorage).filter(k => k.startsWith('proptech.mock.')).forEach(k 
 docker compose up -d --build
 ```
 
-- O site responde em <http://localhost:7520/login> (com o `BASE_PATH` vazio).
+- O site responde em <http://localhost:7520/> (com o `BASE_PATH` vazio).
 - Para simular o servidor, que usa o subcaminho:
   ```bash
   NEXT_PUBLIC_BASE_PATH=/condominio docker compose up -d --build
   ```
-  e abra <http://localhost:7520/condominio/login>.
+  e abra <http://localhost:7520/condominio>.
 - Para parar e remover: `docker compose down`.
 
 **Limitação:** a imagem Docker **não tem o proxy de desenvolvimento**. Sem o gateway no ar, o login pelo container falha com erro de conexão, e isso não é defeito do front. Para testar o fluxo completo na sua máquina, use o `npm run dev` (seção 3).
@@ -205,7 +205,7 @@ O repositório tem **dois pipelines com o mesmo fluxo**:
 2. `docker compose config` — valida o `docker-compose.yml`.
 3. `docker compose build` — gera a imagem (aqui as variáveis `NEXT_PUBLIC_*` são gravadas).
 4. `docker compose up -d --force-recreate` — sobe o container `proptech-frontend` na porta **7520**.
-5. Confere se o container está rodando e se `/condominio/login` responde.
+5. Confere se o container está rodando e se `/condominio` responde.
 
 No Console Output, procure: `Container em execução.` e `Frontend respondendo.`. Se a última etapa ficar **amarela**, o container subiu mas a página não respondeu a tempo: veja o `docker logs` que aparece no fim do log.
 
@@ -213,7 +213,7 @@ As variáveis (`NEXT_PUBLIC_BASE_PATH=/condominio` e `NEXT_PUBLIC_API_URL=/condo
 
 ### Conferindo depois do deploy
 
-1. Abra <http://academico3.rj.senac.br/condominio/login>.
+1. Abra <http://academico3.rj.senac.br/condominio>.
 2. Entre como síndico e navegue pelos cadastros.
 3. Se o login falhar com erro de conexão ou 404, o problema está no **gateway** ou no backend, não no front. Confira com o grupo se o gateway aponta para o MS Moradores (porta 7522) e se repassa `Authorization`, `PATCH`/`DELETE` e os corpos de erro sem alterar.
 
@@ -302,7 +302,7 @@ src/
 | "A senha deve ter entre 8 e 16 caracteres." / "…maiúscula e uma minúscula" / "…um número" / "…um caractere especial" | A senha não segue a política de senha | Use de 8 a 16 caracteres, com maiúscula, minúscula, número e caractere especial (ex.: `Senha@1234`) |
 | "Acesso negado. Você não tem permissão para esta ação." | A API respondeu 403: o perfil da conta não pode fazer isso | Entre com uma conta de síndico, ou peça a permissão |
 | "A API demorou mais de 10 s para responder." | Backend ou gateway lento ou travado; banco fora do ar | Tente de novo; confira `GET /condominio/morador/health` do backend (deve responder `Healthy`) |
-| `http://localhost:3000/login` dá 404 | `NEXT_PUBLIC_BASE_PATH=/condominio` no `.env.local` | Deixe vazio (ou acesse `/condominio/login`) e reinicie o `npm run dev` |
+| `http://localhost:3000/` dá 404 | `NEXT_PUBLIC_BASE_PATH=/condominio` no `.env.local` | Deixe vazio (ou acesse `/condominio`) e reinicie o `npm run dev` |
 | A tela carrega, mas os botões não respondem (em dev) | Página aberta por `127.0.0.1`, que o Next.js em desenvolvimento pode bloquear | Abra por `http://localhost:3000` |
 | Mudei uma variável `NEXT_PUBLIC_*` e nada mudou | Elas são lidas no build | Reinicie o `npm run dev` ou rode `docker compose up -d --build` |
 | `port is already allocated` / `EADDRINUSE` | Porta 3000 (dev) ou 7520 (Docker) ocupada | Veja quem usa: `ss -ltnp \| grep 7520`; pare o processo ou o container (`docker ps`, `docker stop NOME`) |
