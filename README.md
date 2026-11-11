@@ -40,6 +40,7 @@ Navegador
 ```
 
 - O site é publicado num **subcaminho** (`/condominio`), por isso existe a variável `NEXT_PUBLIC_BASE_PATH`.
+- O proxy do servidor **retira** `/condominio` antes de repassar ao contêiner; o `next.config.ts` trata isso com rewrites que devolvem o prefixo (a porta usada vem de `PORT`, 7520 por padrão). Funciona com ou sem retirada do prefixo.
 - O navegador chama caminhos **relativos** (`/condominio/gateway/morador` e `/condominio/gateway/financeiro`), no mesmo endereço do site: por isso não há problema de CORS.
 - O login é feito no **MS Moradores**; o mesmo token (JWT) é enviado ao **MS Financeiro**, que o valida com o mesmo `JWT_SECRET`.
 - O **gateway** precisa repassar o header `Authorization`, os métodos `PATCH`/`DELETE` e os corpos de erro (400/401/403) **sem alterar**. Se ele não fizer isso, o front falha em produção mesmo estando tudo certo no código.

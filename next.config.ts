@@ -20,10 +20,28 @@ const nextConfig: NextConfig = {
   // gera a pasta .next/standalone, que roda com `node server.js` (usada no Dockerfile)
   output: "standalone",
   async rewrites() {
-    return [
-      ...(apiProxy ? [{ source: `${apiBase}/:path*`, destination: `${apiProxy}/condominio/morador/:path*`, basePath: false as const }] : []),
-      ...(finProxy ? [{ source: `${finBase}/:path*`, destination: `${finProxy}/condominio/financeiro/:path*`, basePath: false as const }] : []),
-    ];
+    // O servidor da faculdade RETIRA o subcaminho antes de repassar ao container (é o que faz com /condominio/morador no
+    // backend): o navegador pede /condominio/login e o container recebe /login. Com basePath, o Next responderia 404
+    // a qualquer caminho sem o prefixo. Estas regras (rodam antes de páginas e arquivos estáticos) devolvem o prefixo,
+    // então o site abre com ou sem proxy retirando o subcaminho. Não afetam quem já chega com /condominio.
+    // (O Next só aceita reescrever fora do basePath para uma URL absoluta, por isso o destino é o próprio servidor,
+    // na porta do container: 7520, a mesma do Dockerfile.)
+    const sub = basePath.replace(/^\//, "");
+    const self = `http://127.0.0.1:${process.env.PORT ?? 7520}${basePath}`;
+    const devolvePrefixo = basePath
+      ? [
+          { source: "/", destination: self, basePath: false as const },
+          { source: `/:resto((?!${sub}(?:/|$)).+)`, destination: `${self}/:resto`, basePath: false as const },
+        ]
+      : [];
+    return {
+      beforeFiles: devolvePrefixo,
+      afterFiles: [
+        ...(apiProxy ? [{ source: `${apiBase}/:path*`, destination: `${apiProxy}/condominio/morador/:path*`, basePath: false as const }] : []),
+        ...(finProxy ? [{ source: `${finBase}/:path*`, destination: `${finProxy}/condominio/financeiro/:path*`, basePath: false as const }] : []),
+      ],
+      fallback: [],
+    };
   },
   turbopack: {
     rules: {
