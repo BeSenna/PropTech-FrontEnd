@@ -1,4 +1,4 @@
-import { fmtDate, toDateInput } from '@/lib/format';
+import { fmtDate, toDateInput, validarDataBr } from '@/lib/format';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { EncerrarButton } from '@/components/EncerrarButton';
@@ -49,8 +49,8 @@ export const vinculoCfg: ResourceConfig = {
       required: true,
       options: ['PROPRIETARIO', 'INQUILINO', 'MORADOR', 'TEMPORADA'].map((x) => ({ value: x, label: x })),
     },
-    { name: 'moradorImovelDataInicio', label: 'Início', col: 'morador_imovel_data_inicio', type: 'date', required: true, half: true },
-    { name: 'moradorImovelDataFim', label: 'Fim (opcional)', col: 'morador_imovel_data_fim', type: 'date', half: true },
+    { name: 'moradorImovelDataInicio', label: 'Início', col: 'morador_imovel_data_inicio', type: 'data-br', required: true, half: true, validate: validarDataBr },
+    { name: 'moradorImovelDataFim', label: 'Fim (opcional)', col: 'morador_imovel_data_fim', type: 'data-br', half: true, validate: validarDataBr },
     { name: 'moradorImovelStatus', label: 'Status', col: 'morador_imovel_status', type: 'toggle', toggleTitle: 'Vínculo ativo', toggleHint: 'Desative ao invés de excluir para manter histórico' },
   ],
   formSubtitle: '',
