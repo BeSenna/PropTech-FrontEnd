@@ -1,4 +1,4 @@
-import { cpfValido, fmtCpf, fmtDate, fmtDateTime, onlyDigits, toDateInput } from '@/lib/format';
+import { cpfValido, fmtCpf, fmtDate, fmtDateTime, hoje, onlyDigits, toDateInput, validarDataBr } from '@/lib/format';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { blocoLetra, imovelRotulo, moradorApi, vinculosPorMorador } from '@/services/moradorService';
@@ -57,7 +57,7 @@ export const moradorCfg: ResourceConfig = {
   fields: [
     { name: 'moradorNome', label: 'Nome completo', col: 'morador_nome', type: 'text', required: true, maxLength: 300 },
     { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00', fkNote: 'Informe um CPF válido (os dígitos verificadores são conferidos).', validate: (v) => (cpfValido(String(v)) ? null : 'CPF inválido. Confira os números digitados.') },
-    { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'date', half: true },
+    { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'data-br', half: true, placeholder: 'DD/MM/AAAA', validate: (v) => validarDataBr(v) ?? (String(v) > hoje() ? 'A data de nascimento não pode ser futura.' : null) },
     { name: 'moradorEmail', label: 'E-mail', col: 'morador_email', type: 'text', half: true, maxLength: 150, placeholder: 'nome@email.com' },
     { name: 'moradorTelefone', label: 'Telefone', col: 'morador_telefone', type: 'text', half: true, maxLength: 20, placeholder: '(21) 90000-0000' },
     { name: 'moradorDeficienciaLocomocao', label: 'Necessidade especial', col: 'morador_deficiencia_locomocao', type: 'toggle', toggleTitle: 'Possui deficiência', toggleHint: 'Prioridade em áreas comuns' },
