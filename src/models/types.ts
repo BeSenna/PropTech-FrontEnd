@@ -40,7 +40,7 @@ export interface Column {
   strong?: boolean;
 }
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'date' | 'time' | 'select' | 'radio' | 'toggle' | 'money' | 'password';
+export type FieldType = 'text' | 'textarea' | 'number' | 'date' | 'data-br' | 'time' | 'select' | 'radio' | 'toggle' | 'money' | 'password';
 
 export interface FieldDef {
   name: string;

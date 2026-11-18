@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/components/ui";
+import { DateInputBR } from "@/components/DateInputBR";
 import { useToast } from "@/components/Toast";
 import { limparCache } from "@/services/moradorService";
 import { SENHA_DICA, validarSenha } from "@/lib/senha";
@@ -289,6 +290,8 @@ function Field({ f, value, options, onChange }: { f: FieldDef; value: unknown; o
           ))}
         </select>,
       );
+    case "data-br":
+      return wrap(<DateInputBR id={id} value={String(value ?? "")} onChange={onChange} placeholder={f.placeholder} />);
     case "textarea":
       return wrap(<textarea id={id} className={cx(inputCls, "min-h-[84px] resize-y")} value={String(value ?? "")} placeholder={f.placeholder} onChange={(e) => onChange(e.target.value)} />);
     default: {

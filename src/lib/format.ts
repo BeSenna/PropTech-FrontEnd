@@ -18,6 +18,35 @@ export function fmtDateTime(v?: string | null): string {
 
 export const toDateInput = (v?: string | null) => (v ? String(v).slice(0, 10) : '');
 
+// ---- Datas no padrão brasileiro (DD/MM/AAAA) nos formulários.
+// O <input type="date"> do navegador segue o idioma do navegador (em inglês fica MM/DD/YYYY),
+// então os campos 'data-br' usam texto com máscara e guardam a data em ISO (AAAA-MM-DD), como o backend espera.
+export const isoToBr = (iso?: string | null) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? '');
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : '';
+};
+
+export function maskDataBr(s: string): string {
+  const d = onlyDigits(s).slice(0, 8);
+  if (d.length <= 2) return d;
+  if (d.length <= 4) return `${d.slice(0, 2)}/${d.slice(2)}`;
+  return `${d.slice(0, 2)}/${d.slice(2, 4)}/${d.slice(4)}`;
+}
+
+// 'DD/MM/AAAA' -> 'AAAA-MM-DD'; null se incompleta ou se a data não existe (31/02, 29/02 em ano comum...).
+export function brToIso(s: string): string | null {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(s ?? '');
+  if (!m) return null;
+  const dia = Number(m[1]), mes = Number(m[2]), ano = Number(m[3]);
+  if (ano < 1900) return null;
+  const d = new Date(ano, mes - 1, dia);
+  if (d.getFullYear() !== ano || d.getMonth() !== mes - 1 || d.getDate() !== dia) return null;
+  return `${m[3]}-${m[2]}-${m[1]}`;
+}
+
+// Para o `validate` dos campos 'data-br': o valor é ISO quando a data digitada é válida; senão continua o texto digitado.
+export const validarDataBr = (v: unknown): string | null => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? null : 'Data inválida. Use o formato DD/MM/AAAA.');
+
 export function fmtMoney(v: unknown): string {
   const n = Number(v);
   if (!isFinite(n)) return '—';
