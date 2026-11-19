@@ -89,6 +89,26 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [counts, setCounts] = useState<Counts>({});
   const [q, setQ] = useState("");
+  // abaixo de 820px o menu vira uma gaveta aberta pelo botão do topo (acima disso fica fixo na lateral)
+  const [menuAberto, setMenuAberto] = useState(false);
+
+  // ao navegar, a gaveta fecha
+  useEffect(() => {
+    setMenuAberto(false);
+  }, [pathname]);
+
+  // gaveta aberta: Esc fecha e a página de trás não rola
+  useEffect(() => {
+    if (!menuAberto) return;
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && setMenuAberto(false);
+    document.addEventListener("keydown", esc);
+    const antes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", esc);
+      document.body.style.overflow = antes;
+    };
+  }, [menuAberto]);
 
   useEffect(() => {
     let vivo = true;
@@ -106,18 +126,35 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
 
   const buscar = (e: FormEvent) => {
     e.preventDefault();
+    setMenuAberto(false);
     router.push(`/moradores?busca=${encodeURIComponent(q)}`);
   };
 
   return (
     <div className="grid min-h-screen grid-cols-1 min-[820px]:grid-cols-[252px_1fr]">
-      <aside className="flex flex-col overflow-y-auto bg-navy px-3.5 pt-5 pb-3.5 text-side min-[820px]:sticky min-[820px]:top-0 min-[820px]:h-screen" aria-label="Menu principal">
+      {menuAberto && <button type="button" tabIndex={-1} aria-label="Fechar menu" className="fixed inset-0 z-30 border-0 bg-black/50 min-[820px]:hidden" onClick={() => setMenuAberto(false)} />}
+      <aside
+        id="menu-principal"
+        className={cx(
+          "flex flex-col overflow-y-auto bg-navy px-3.5 pt-5 pb-3.5 text-side min-[820px]:sticky min-[820px]:top-0 min-[820px]:h-screen",
+          // celular/tablet: gaveta por cima do conteúdo; fechada fica fora da tela e fora da navegação por teclado
+          "max-[819px]:fixed max-[819px]:inset-y-0 max-[819px]:left-0 max-[819px]:z-40 max-[819px]:w-[280px] max-[819px]:max-w-[85vw] max-[819px]:transition-[transform,visibility] max-[819px]:duration-200",
+          !menuAberto && "max-[819px]:invisible max-[819px]:-translate-x-full",
+        )}
+        aria-label="Menu principal"
+      >
         <div className="flex items-center gap-2.5 pb-3.5">
           <div className="grid size-8 flex-none place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-navy">PT</div>
           <div>
             <strong className="block text-sm text-white">PropTech</strong>
           </div>
+          <button type="button" className="ml-auto grid size-10 flex-none place-items-center rounded-[10px] border-0 bg-white/10 text-lg text-white min-[820px]:hidden" aria-label="Fechar menu" onClick={() => setMenuAberto(false)}>
+            ✕
+          </button>
         </div>
+        <form onSubmit={buscar} className="mb-2 min-[820px]:hidden">
+          <input className={cx(searchCls, "h-10 w-full bg-white text-ink-2 placeholder:text-muted")} type="search" placeholder="Buscar em Moradores..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar moradores" />
+        </form>
         <div className="mt-1.5 mb-1 text-[10px] font-bold tracking-[0.04em] text-[#7c8ac2] uppercase">Início</div>
         <Item to={INICIO} label="Dashboard" />
 
@@ -161,7 +198,12 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
 
       <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-5 flex h-16 items-center gap-3 border-b border-line bg-white px-4 min-[820px]:px-7">
-          <nav className="flex flex-wrap gap-1.5 text-[13px] font-bold" aria-label="Você está em">
+          <button type="button" className="grid size-10 flex-none place-items-center rounded-[10px] border border-line bg-white min-[820px]:hidden" aria-label="Abrir menu" aria-expanded={menuAberto} aria-controls="menu-principal" onClick={() => setMenuAberto(true)}>
+            <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M1 1h16M1 7h16M1 13h16" />
+            </svg>
+          </button>
+          <nav className="flex min-w-0 flex-wrap gap-1.5 text-[13px] font-bold" aria-label="Você está em">
             {crumbs.map((c, i) => (
               <span key={c.label} className="contents">
                 {i > 0 && <span className="font-medium text-muted-2">/</span>}
@@ -176,10 +218,10 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
             ))}
           </nav>
           <div className="ml-auto flex items-center gap-3">
-            <form onSubmit={buscar} className="max-[820px]:hidden">
+            <form onSubmit={buscar} className="max-[819px]:hidden">
               <input className={cx(searchCls, "w-60")} type="search" placeholder="Buscar em Moradores..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar moradores" />
             </form>
-            <button className="size-9 rounded-[10px] border border-line bg-white" aria-label="Notificações" type="button" onClick={() => router.push("/avisos")}>
+            <button className="size-10 rounded-[10px] border border-line bg-white min-[820px]:size-9" aria-label="Notificações" type="button" onClick={() => router.push("/avisos")}>
               🔔
             </button>
             <div className="grid size-[34px] place-items-center rounded-[10px] bg-primary text-[11.5px] font-extrabold text-white" title={user?.usuarioLogin}>

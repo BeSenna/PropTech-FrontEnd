@@ -9,10 +9,17 @@ import type { Option, Rec, ResourceConfig } from "@/models/types";
 const PAGE_SIZE = 10;
 type Filters = Record<string, string | number | undefined>;
 
+// celular/tablet: a 1ª coluna (quem é o registro) fica fixa enquanto a tabela rola para o lado
+const PRIMEIRA_COL_TH = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-white max-[819px]:border-r max-[819px]:border-line-soft";
+const PRIMEIRA_COL_TD = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-white max-[819px]:border-r max-[819px]:border-line-soft max-[819px]:min-w-32 max-[819px]:max-w-40 group-hover:max-[819px]:bg-[#f8f9fd]";
+
 export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [chip, setChip] = useState(0);
+  // a tabela é mais larga que a tela? (mostra o aviso de rolagem no celular/tablet)
+  const tabelaRef = useRef<HTMLDivElement>(null);
+  const [rola, setRola] = useState(false);
   const [busca, setBusca] = useState(() => sp.get("busca") ?? "");
   const [buscaAtiva, setBuscaAtiva] = useState(() => (sp.get("busca") ?? "").trim());
   const [page, setPage] = useState(1);
@@ -140,11 +147,26 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
     });
   }, [rows, sort, cfg]);
 
+  // mede se a tabela passa da largura do cartão (no giro do aparelho ou ao carregar novos dados)
+  useEffect(() => {
+    const el = tabelaRef.current;
+    if (!el) {
+      setRola(false);
+      return;
+    }
+    const medir = () => setRola(el.scrollWidth > el.clientWidth + 1);
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    if (el.firstElementChild) ro.observe(el.firstElementChild);
+    return () => ro.disconnect();
+  }, [ordenadas]);
+
   const paginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const novo = cfg.newLabel ?? `${cfg.gender === "m" ? "Novo" : "Nova"} ${cfg.singular}`;
   const abrir = (r: Rec) => router.push(`${cfg.path}/${r[cfg.idKey]}${cfg.hasDetail ? "" : "/editar"}`);
   const pageNumbers = Array.from({ length: paginas }, (_, i) => i + 1).filter((n) => n === 1 || n === paginas || Math.abs(n - page) <= 1);
-  const pagBtn = "h-7 min-w-7 rounded-[7px] border text-[11.5px] font-semibold disabled:cursor-default disabled:opacity-40";
+  const pagBtn = "h-10 min-w-10 rounded-[7px] border text-[11.5px] font-semibold disabled:cursor-default disabled:opacity-40 min-[820px]:h-7 min-[820px]:min-w-7";
 
   return (
     <>
@@ -192,7 +214,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             <button
               key={c.label}
               type="button"
-              className={cx("rounded-full border px-3.5 py-1.5 text-xs font-bold", i === chip ? "border-primary bg-primary text-white" : "border-line bg-white text-ink-2")}
+              className={cx("rounded-full border px-3.5 py-1.5 text-xs font-bold max-[819px]:min-h-10", i === chip ? "border-primary bg-primary text-white" : "border-line bg-white text-ink-2")}
               onClick={() => {
                 setChip(i);
                 setPage(1);
@@ -211,17 +233,17 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         ) : rows.length === 0 && !erro ? (
           <Empty>Nenhum registro encontrado.</Empty>
         ) : (
-          <div className="overflow-x-auto">
+          <div ref={tabelaRef} className="overflow-x-auto">
             <table className="w-full border-collapse">
               <caption className="sr-only">Lista de {cfg.plural.toLowerCase()}</caption>
               <thead>
                 <tr>
-                  {cfg.columns.map((c) => (
+                  {cfg.columns.map((c, ci) => (
                     <th
                       key={c.key}
                       scope="col"
                       aria-sort={c.sortValue && sort?.key === c.key ? (sort.dir === 1 ? "ascending" : "descending") : undefined}
-                      className={cx("border-b border-line px-[18px] py-3.5 text-left text-[10.5px] font-bold tracking-[0.03em] whitespace-nowrap text-muted uppercase select-none", c.sortValue && "cursor-pointer")}
+                      className={cx("border-b border-line px-3 py-3.5 text-left text-[10.5px] font-bold tracking-[0.03em] whitespace-nowrap text-muted uppercase select-none min-[820px]:px-[18px]", c.sortValue && "cursor-pointer", ci === 0 && PRIMEIRA_COL_TH)}
                       onClick={() => c.sortValue && setSort((s) => (s?.key === c.key ? { key: c.key, dir: (s.dir * -1) as 1 | -1 } : { key: c.key, dir: 1 }))}
                     >
                       {c.label}
@@ -235,14 +257,14 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                   <tr
                     key={r[cfg.idKey]}
                     tabIndex={0}
-                    className="cursor-pointer hover:bg-[#f8f9fd]"
+                    className="group cursor-pointer hover:bg-[#f8f9fd]"
                     onClick={() => abrir(r)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") abrir(r);
                     }}
                   >
-                    {cfg.columns.map((c) => (
-                      <td key={c.key} className={cx("border-b border-line-soft px-[18px] py-[13px] align-middle", c.strong && "font-bold")}>
+                    {cfg.columns.map((c, ci) => (
+                      <td key={c.key} className={cx("border-b border-line-soft px-3 py-[13px] align-middle min-[820px]:px-[18px]", c.strong && "font-bold", ci === 0 && PRIMEIRA_COL_TD)}>
                         {c.render ? c.render(r) : (r[c.key] ?? "—")}
                       </td>
                     ))}
@@ -252,7 +274,12 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             </table>
           </div>
         )}
-        <div className="flex items-center justify-between px-[18px] py-3 text-[11.5px] text-muted">
+        {rola && (
+          <p className="m-0 border-t border-line-soft px-3 py-2 text-center text-[11px] text-muted min-[820px]:hidden" aria-hidden="true">
+            ← Deslize a tabela para ver as outras colunas →
+          </p>
+        )}
+        <div className="flex items-center justify-between px-3 py-3 text-[11.5px] text-muted min-[820px]:px-[18px]">
           <span>
             Exibindo {rows.length} de {total}
           </span>
