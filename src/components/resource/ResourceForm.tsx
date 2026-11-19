@@ -6,8 +6,9 @@ import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/compon
 import { CheckboxGroup } from "@/components/CheckboxGroup";
 import { DateInputBR } from "@/components/DateInputBR";
 import { useToast } from "@/components/Toast";
-import { limparCache } from "@/services/moradorService";
+import { limparCache, usuarioApi, vinculoApi } from "@/services/moradorService";
 import { SENHA_DICA, validarSenha } from "@/lib/senha";
+import { motivoTipoBloqueado, rotuloTipo, vigente } from "@/lib/relacao";
 import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -167,42 +168,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
               <Field key={f.name} f={f} value={values[f.name]} values={values} options={optionsOf(f)} onChange={(v) => set(f.name, v)} />
             ))}
 
-            {cfg.extraFormSection === "vinculoAcesso" && (
-              <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-[#f8f9fd] px-4 py-3.5">
-                <div className="text-[11.5px] font-bold">
-                  Acesso ao sistema
-                </div>
-                {mode === "edit" ? (
-                  <div className="text-[11px] text-muted">
-                    {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Para dar acesso, vá em Usuários → Novo, escolha o perfil MORADOR e selecione esta relação."}
-                  </div>
-                ) : (
-                  <>
-                    <Toggle title="Conceder acesso ao Portal do Morador" hint="Cria uma conta de login vinculada a esta relação" on={!!values._acesso} onChange={() => set("_acesso", !values._acesso)} wide />
-                    {values._acesso && (
-                      <div className="grid grid-cols-1 gap-3 min-[820px]:grid-cols-2">
-                        <div className="flex flex-col gap-[7px]">
-                          <label htmlFor="f_login" className={labelCls}>
-                            Login
-                          </label>
-                          <input id="f_login" className={inputCls} value={values._login} maxLength={100} onChange={(e) => set("_login", e.target.value)} placeholder="seu.login" autoComplete="off" />
-                        </div>
-                        <div className="flex flex-col gap-[7px]">
-                          <label htmlFor="f_senha" className={labelCls}>
-                            Senha inicial
-                          </label>
-                          <input id="f_senha" className={inputCls} type="password" value={values._senha} onChange={(e) => set("_senha", e.target.value)} autoComplete="new-password" aria-describedby="f_senha_dica" />
-                          <div id="f_senha_dica" className="text-[11px] text-muted">
-                            {SENHA_DICA}
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="text-[11px] text-muted">Cada relação pode ter a sua própria conta de acesso.</div>
-                  </>
-                )}
-              </div>
-            )}
+            {cfg.extraFormSection === "vinculoAcesso" && <VinculoExtras mode={mode} values={values} set={set} />}
           </div>
           <div className="mt-2 flex gap-2.5 border-t border-line-soft px-[26px] pt-[18px] pb-6">
             <button type="button" className={btn("ghost")} onClick={() => router.back()}>
@@ -214,6 +180,113 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
           </div>
         </Card>
       </form>
+    </>
+  );
+}
+
+// Avisos e acesso da tela de relação (morador ↔ imóvel). No cadastro, olha o que o morador já tem:
+// as relações dele neste imóvel (alimentam o bloqueio de combinações) e se ele já tem login (a nova relação o herda).
+function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values: Rec; set: (name: string, v: unknown) => void }) {
+  const moradorId = String(values.moradorId ?? "");
+  const imovelId = String(values.imovelId ?? "");
+  const [rels, setRels] = useState<Rec[]>([]);
+  const [conta, setConta] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    let vivo = true;
+    (async () => {
+      if (!moradorId) {
+        setRels([]);
+        setConta(null);
+        return;
+      }
+      try {
+        const r = await vinculoApi.list({ page: 1, pageSize: 100, filters: { moradorId } });
+        if (!vivo) return;
+        setRels(r.data);
+        const comLogin = r.data.find((x) => x.usuarioId);
+        if (!comLogin) return setConta(null);
+        const u = await usuarioApi.get(comLogin.usuarioId);
+        if (vivo) setConta(u.usuarioStatus === 1 ? String(u.usuarioLogin) : null);
+      } catch {
+        // sem a consulta o formulário continua funcionando; o backend valida tudo no envio
+        if (vivo) {
+          setRels([]);
+          setConta(null);
+        }
+      }
+    })();
+    return () => {
+      vivo = false;
+    };
+  }, [mode, moradorId]);
+
+  const neste = useMemo(() => (imovelId ? rels.filter((x) => String(x.imovelId) === imovelId) : []), [rels, imovelId]);
+
+  // o bloqueio das opções (campo "Tipo de relação") lê as relações do imóvel direto dos valores do formulário
+  useEffect(() => {
+    if (mode !== "create") return;
+    set("_existentes", neste);
+    // tipo já marcado que deixou de ser possível neste imóvel (ex.: o padrão MORADOR para quem já é Inquilino dele) sai da escolha
+    const marcados: string[] = Array.isArray(values._tipos) ? values._tipos : [];
+    const validos = marcados.filter((t) => !motivoTipoBloqueado(t, [], neste));
+    if (validos.length !== marcados.length) set("_tipos", validos);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, neste]);
+
+  // quem já tem login não cria outro: a nova relação herda o mesmo
+  useEffect(() => {
+    if (mode === "create" && conta) set("_acesso", false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, conta]);
+
+  const vigentes = neste.filter(vigente);
+  const nTipos = Array.isArray(values._tipos) ? values._tipos.length : 1;
+
+  return (
+    <>
+      {mode === "create" && vigentes.length > 0 && (
+        <div role="status" className="col-span-full rounded-[10px] border border-warn-fg/30 bg-warn-bg px-4 py-3 text-[11.5px] text-warn-fg">
+          Este morador já tem neste imóvel: <strong>{vigentes.map((x) => rotuloTipo(String(x.moradorImovelTipoRelacao))).join(" e ")}</strong>. No mesmo imóvel só é permitido somar Proprietário + Morador.
+        </div>
+      )}
+      <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-[#f8f9fd] px-4 py-3.5">
+        <div className="text-[11.5px] font-bold">Acesso ao sistema</div>
+        {mode === "edit" ? (
+          <div className="text-[11px] text-muted">
+            {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). O login é da pessoa: vale para todas as relações dela. Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Para dar acesso, vá em Usuários → Novo, escolha o perfil MORADOR e selecione esta relação."}
+          </div>
+        ) : conta ? (
+          <div className="text-[11px] text-muted">
+            Este morador já tem acesso ao Portal do Morador (login <strong>{conta}</strong>). {nTipos > 1 ? "As novas relações usam" : "A nova relação usa"} esse mesmo login.
+          </div>
+        ) : (
+          <>
+            <Toggle title="Conceder acesso ao Portal do Morador" hint={nTipos > 1 ? "Cria uma conta de login compartilhada pelas relações cadastradas agora" : "Cria uma conta de login vinculada a esta relação"} on={!!values._acesso} onChange={() => set("_acesso", !values._acesso)} wide />
+            {values._acesso && (
+              <div className="grid grid-cols-1 gap-3 min-[820px]:grid-cols-2">
+                <div className="flex flex-col gap-[7px]">
+                  <label htmlFor="f_login" className={labelCls}>
+                    Login
+                  </label>
+                  <input id="f_login" className={inputCls} value={values._login} maxLength={100} onChange={(e) => set("_login", e.target.value)} placeholder="seu.login" autoComplete="off" />
+                </div>
+                <div className="flex flex-col gap-[7px]">
+                  <label htmlFor="f_senha" className={labelCls}>
+                    Senha inicial
+                  </label>
+                  <input id="f_senha" className={inputCls} type="password" value={values._senha} onChange={(e) => set("_senha", e.target.value)} autoComplete="new-password" aria-describedby="f_senha_dica" />
+                  <div id="f_senha_dica" className="text-[11px] text-muted">
+                    {SENHA_DICA}
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="text-[11px] text-muted">O acesso é da pessoa: as próximas relações deste morador usam o mesmo login.</div>
+          </>
+        )}
+      </div>
     </>
   );
 }

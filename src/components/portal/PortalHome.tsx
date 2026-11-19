@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge, btn, Card, DetailGrid, Empty, PageHeader, RowItem, StatCard, StatGrid } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { usePortal } from "@/components/layouts/PortalShell";
+import { gruposDeImoveis } from "@/lib/relacao";
 import { horario, primeiroNome, minhasReservas, minhasOcorrencias, avisosAtivos } from './shared';
 
 export function PortalHome() {
@@ -11,12 +12,14 @@ export function PortalHome() {
   const reservas = minhasReservas(p.moradorId).filter((r) => r.reserva_status === 1);
   const ocs = minhasOcorrencias(p.moradorId).filter((o) => o.ocorrencia_tipo === "EM_ANDAMENTO");
   const avisos = avisosAtivos();
+  const nImoveis = gruposDeImoveis(p.vinculos).length;
+  const subImovel = !p.imovelLabel ? "Sem imóvel vinculado" : `${p.imovelLabel} · ${p.blocoNome}${nImoveis > 1 ? ` e mais ${nImoveis - 1} ${nImoveis - 1 === 1 ? "imóvel" : "imóveis"}` : ""}`;
   return (
     <>
       <PageHeader
         back={false}
         title={`Olá, ${primeiroNome(p.nome)} 👋`}
-        sub={`${p.imovelLabel ? `${p.imovelLabel} · ${p.blocoNome}` : "Sem imóvel vinculado"} — bem-vindo(a) ao seu portal.`}
+        sub={`${subImovel} — bem-vindo(a) ao seu portal.`}
         actions={
           <>
             <Link className={btn("outline")} href="/portal/reservas/nova">
@@ -29,7 +32,7 @@ export function PortalHome() {
         }
       />
       <StatGrid>
-        <StatCard value={p.vinculo ? 1 : 0} label="Imóvel vinculado" color="navy" />
+        <StatCard value={nImoveis} label={nImoveis > 1 ? "Imóveis vinculados" : "Imóvel vinculado"} color="navy" />
         <StatCard value={reservas.length} label="Reservas ativas" color="green" className="border-l-[#7c3aed]!" />
         <StatCard value={ocs.length} label="Ocorrência em andamento" color="amber" className="border-l-[#ea580c]!" />
         <StatCard value={avisos.length} label="Avisos ativos" color="pink" className="border-l-[#0284c7]!" />

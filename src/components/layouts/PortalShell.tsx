@@ -14,6 +14,7 @@ export interface PortalCtx {
   moradorId: number;
   nome: string;
   vinculo: Rec | null; // vínculo ativo principal
+  vinculos: Rec[]; // todas as relações em vigor (a pessoa pode ter mais de um imóvel, ou ser Proprietário + Morador)
   imovelId: number | null;
   imovelLabel: string;
   blocoNome: string;
@@ -52,10 +53,11 @@ export function PortalShell({ children }: { children: ReactNode }) {
         const m = await moradorApi.get(user.moradorId);
         const vs: Rec[] = (m.moradorImoveis ?? []).filter((v: Rec) => v.moradorImovelStatus === 1);
         const v = vs.find((x) => !x.moradorImovelDataFim || new Date(x.moradorImovelDataFim) > new Date()) ?? vs[0] ?? null;
+        const vigentes = vs.filter((x) => !x.moradorImovelDataFim || new Date(x.moradorImovelDataFim) > new Date());
         const imovelLabel = v ? imovelRotulo(v.imovel, undefined).replace(/ · .*/, "") : "";
         const blocoNome = v?.imovel?.bloco?.blocoNome ?? "";
         semearPortal(m.moradorId, m.moradorNome);
-        if (vivo) setCtx({ moradorId: m.moradorId, nome: m.moradorNome, vinculo: v, imovelId: v?.imovelId ?? null, imovelLabel, blocoNome, morador: m });
+        if (vivo) setCtx({ moradorId: m.moradorId, nome: m.moradorNome, vinculo: v, vinculos: vigentes.length ? vigentes : v ? [v] : [], imovelId: v?.imovelId ?? null, imovelLabel, blocoNome, morador: m });
       } catch (e) {
         if (vivo) setErro((e as Error).message);
       }
