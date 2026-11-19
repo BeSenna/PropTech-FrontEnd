@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/components/ui";
+import { CheckboxGroup } from "@/components/CheckboxGroup";
 import { DateInputBR } from "@/components/DateInputBR";
 import { useToast } from "@/components/Toast";
 import { limparCache } from "@/services/moradorService";
@@ -103,11 +104,11 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     setErro("");
     for (const f of visiveis(values)) {
       const v = values[f.name];
-      if (f.required && (v === "" || v === undefined || v === null)) {
+      if (f.required && (v === "" || v === undefined || v === null || (Array.isArray(v) && v.length === 0))) {
         setErro(`Preencha o campo "${f.label}".`);
         return;
       }
-      const msg = f.validate && v !== "" && v !== undefined && v !== null ? f.validate(v) : null;
+      const msg = f.validate && v !== "" && v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0) ? f.validate(v) : null;
       if (msg) {
         setErro(msg);
         return;
@@ -163,7 +164,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
           )}
           <div className="grid grid-cols-1 gap-x-5 gap-y-[18px] px-[26px] pt-[22px] pb-2 min-[820px]:grid-cols-2">
             {visiveis(values).map((f) => (
-              <Field key={f.name} f={f} value={values[f.name]} options={optionsOf(f)} onChange={(v) => set(f.name, v)} />
+              <Field key={f.name} f={f} value={values[f.name]} values={values} options={optionsOf(f)} onChange={(v) => set(f.name, v)} />
             ))}
 
             {cfg.extraFormSection === "vinculoAcesso" && (
@@ -236,9 +237,9 @@ function Toggle({ title, hint, on, onChange, wide }: { title?: string; hint?: st
   );
 }
 
-function Field({ f, value, options, onChange }: { f: FieldDef; value: unknown; options: Option[]; onChange: (v: unknown) => void }) {
+function Field({ f, value, values, options, onChange }: { f: FieldDef; value: unknown; values: Rec; options: Option[]; onChange: (v: unknown) => void }) {
   const id = `f_${f.name}`;
-  const grupo = f.type === "radio" || f.type === "toggle";
+  const grupo = f.type === "radio" || f.type === "checkbox-group" || f.type === "toggle";
   const label = (
     <>
       {f.label}
@@ -278,6 +279,16 @@ function Field({ f, value, options, onChange }: { f: FieldDef; value: unknown; o
             </button>
           ))}
         </div>,
+      );
+    case "checkbox-group":
+      return wrap(
+        <CheckboxGroup
+          id={id}
+          value={Array.isArray(value) ? (value as string[]) : []}
+          options={options}
+          onChange={onChange}
+          disabledReason={f.optionDisabled ? (o, sel) => f.optionDisabled!(o, sel, values) : undefined}
+        />,
       );
     case "select":
       return wrap(

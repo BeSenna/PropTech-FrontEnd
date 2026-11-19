@@ -40,7 +40,7 @@ export interface Column {
   strong?: boolean;
 }
 
-export type FieldType = 'text' | 'textarea' | 'number' | 'date' | 'data-br' | 'time' | 'select' | 'radio' | 'toggle' | 'money' | 'password';
+export type FieldType = 'text' | 'textarea' | 'number' | 'date' | 'data-br' | 'time' | 'select' | 'radio' | 'checkbox-group' | 'toggle' | 'money' | 'password';
 
 export interface FieldDef {
   name: string;
@@ -61,6 +61,7 @@ export interface FieldDef {
   validate?: (value: unknown) => string | null; // mensagem de erro (ou null se válido); só roda com o campo preenchido
   mode?: 'create' | 'edit'; // visível só nesse modo
   visibleWhen?: (values: Rec) => boolean; // campo condicional (ex.: só aparece para certo perfil)
+  optionDisabled?: (option: string, selected: string[], values: Rec) => string | null; // checkbox-group: motivo de a opção não poder ser marcada agora
 }
 
 export interface ChipFilter {
