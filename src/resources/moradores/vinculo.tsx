@@ -3,7 +3,7 @@ import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { EncerrarButton } from '@/components/EncerrarButton';
 import { blocoLetra, criarUsuario, getBlocoMap, imovelRotulo, limparCache, loadImovelOptions, loadMoradorOptions, vinculoApi } from '@/services/moradorService';
-import { motivoTipoBloqueado, rotuloTipo, TIPOS_RELACAO } from '@/lib/relacao';
+import { motivoOpcaoBloqueada, OPCOES_RELACAO, rotuloOpcao, rotuloTipo, tiposDaOpcao, TIPOS_RELACAO, vigente } from '@/lib/relacao';
 import type { Rec } from '@/models/types';
 import { idFmt, sv, quem } from './shared';
 
@@ -39,31 +39,41 @@ export const vinculoCfg: ResourceConfig = {
   ],
   enrich: async (rows) => {
     const b = await getBlocoMap();
-    return rows.map((r) => ({ ...r, _bloco: b[r.imovel?.blocoId] }));
+    // _combo: a pessoa é Proprietário E Morador, ao mesmo tempo, deste imóvel (as duas relações em vigor)
+    const par = new Set(
+      rows
+        .filter((r) => vigente(r) && r.moradorImovelTipoRelacao === 'PROPRIETARIO' && rows.some((o) => vigente(o) && o.moradorImovelTipoRelacao === 'MORADOR' && o.moradorId === r.moradorId && o.imovelId === r.imovelId))
+        .map((r) => `${r.moradorId}:${r.imovelId}`),
+    );
+    return rows.map((r) => ({ ...r, _bloco: b[r.imovel?.blocoId], _combo: vigente(r) && ['PROPRIETARIO', 'MORADOR'].includes(r.moradorImovelTipoRelacao) && par.has(`${r.moradorId}:${r.imovelId}`) }));
   },
   chips: [
     { label: 'Todos', filters: {} },
     { label: 'Proprietário', filters: { tipoRelacao: 'PROPRIETARIO' } },
     { label: 'Inquilino', filters: { tipoRelacao: 'INQUILINO' } },
     { label: 'Morador', filters: { tipoRelacao: 'MORADOR' } },
+    { label: 'Proprietário + Morador', filters: { combo: 1 } },
     { label: 'Temporada', filters: { tipoRelacao: 'TEMPORADA' } },
   ],
+  // "Proprietário + Morador" precisa olhar as duas relações da pessoa juntas, então os filtros são feitos no navegador
+  localFilterKeys: ['tipoRelacao', 'combo'],
+  localFilter: (r, k, v) => (k === 'combo' ? r._combo === true : r.moradorImovelTipoRelacao === v),
   searchable: false,
   urlFilters: ['moradorId', 'imovelId'],
   fields: [
     { name: 'moradorId', label: 'Morador', col: 'morador_id (FK)', type: 'select', required: true, loadOptions: loadMoradorOptions },
     { name: 'imovelId', label: 'Imóvel', col: 'imovel_id (FK)', type: 'select', required: true, loadOptions: loadImovelOptions },
     {
-      // cadastro: dá para marcar mais de um tipo (cada tipo vira uma relação); só Proprietário + Morador combinam
-      name: '_tipos',
+      // cadastro: "Proprietário + Morador" cria as duas relações de uma vez (a única soma permitida no mesmo imóvel)
+      name: '_opcao',
       label: 'Tipo de relação',
       col: 'morador_imovel_tipo_relacao',
-      type: 'checkbox-group',
+      type: 'radio',
       mode: 'create',
       required: true,
-      options: TIPOS_RELACAO.map((x) => ({ value: x, label: x })),
-      optionDisabled: (tipo, marcados, values) => motivoTipoBloqueado(tipo, marcados, values._existentes ?? []),
-      fkNote: 'Marque dois tipos só para Proprietário + Morador (dono que também mora no imóvel). Cada tipo vira uma relação.',
+      options: OPCOES_RELACAO.map((x) => ({ value: x, label: rotuloOpcao(x) })),
+      optionDisabled: (opcao, _sel, values) => motivoOpcaoBloqueada(opcao, values._existentes ?? []),
+      fkNote: '"Proprietário + Morador" é para o dono que também mora no imóvel: cadastra as duas relações de uma vez.',
     },
     {
       // edição: uma relação tem um único tipo
@@ -80,7 +90,7 @@ export const vinculoCfg: ResourceConfig = {
     { name: 'moradorImovelStatus', label: 'Status', col: 'morador_imovel_status', type: 'toggle', toggleTitle: 'Vínculo ativo', toggleHint: 'Desative ao invés de excluir para manter histórico' },
   ],
   formSubtitle: '',
-  defaults: { moradorId: '', imovelId: '', moradorImovelTipoRelacao: 'MORADOR', _tipos: ['MORADOR'], _existentes: [], moradorImovelDataInicio: '', moradorImovelDataFim: '', moradorImovelStatus: 1, _acesso: false, _login: '', _senha: '' },
+  defaults: { moradorId: '', imovelId: '', moradorImovelTipoRelacao: 'MORADOR', _opcao: 'MORADOR', _existentes: [], moradorImovelDataInicio: '', moradorImovelDataFim: '', moradorImovelStatus: 1, _acesso: false, _login: '', _senha: '' },
   extraFormSection: 'vinculoAcesso',
   toForm: (r) => ({
     moradorId: r.moradorId,
@@ -93,7 +103,7 @@ export const vinculoCfg: ResourceConfig = {
   }),
   toPayload: (v, mode) =>
     mode === 'create'
-      ? corpoCriacao(v, (v._tipos as string[])[0])
+      ? corpoCriacao(v, tiposDaOpcao(String(v._opcao))[0])
       : {
           moradorId: v.moradorId,
           imovelId: v.imovelId,
@@ -117,7 +127,7 @@ export const vinculoCfg: ResourceConfig = {
         erros.push(`login não criado (${(e as Error).message})`);
       }
     }
-    for (const tipo of (v._tipos as string[]).filter((t) => t !== saved.moradorImovelTipoRelacao)) {
+    for (const tipo of tiposDaOpcao(String(v._opcao)).filter((t) => t !== saved.moradorImovelTipoRelacao)) {
       try {
         await vinculoApi.create(corpoCriacao(v, tipo));
       } catch (e) {
