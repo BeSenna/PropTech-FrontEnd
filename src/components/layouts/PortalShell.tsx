@@ -80,7 +80,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
             {NAV.map((n) => {
               const ativo = n.exact ? pathname === n.to : pathname === n.to || pathname.startsWith(`${n.to}/`);
               return (
-                <Link key={n.to} href={n.to} className={cx("border-b-2 py-1.5 text-[13.5px] whitespace-nowrap", ativo ? "border-accent font-bold text-white" : "border-transparent font-medium text-side")}>
+                <Link key={n.to} href={n.to} className={cx("border-b-2 py-3 text-[13.5px] whitespace-nowrap min-[820px]:py-1.5", ativo ? "border-accent font-bold text-white" : "border-transparent font-medium text-side")}>
                   {n.label}
                 </Link>
               );
@@ -91,7 +91,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
             <div>
               <strong className="block text-xs max-[820px]:hidden">{nome}</strong>
               <small>
-                <button onClick={logout} className="border-0 bg-transparent p-0 text-[10.5px] text-side-muted hover:text-white hover:underline">
+                <button onClick={logout} className="border-0 bg-transparent p-0 text-[10.5px] text-side-muted hover:text-white hover:underline max-[819px]:-mx-2 max-[819px]:px-2 max-[819px]:py-3 max-[819px]:text-xs">
                   Sair
                 </button>
               </small>

@@ -14,7 +14,7 @@ const Linhas = ({ itens }: { itens: ReactNode[] }) =>
   ) : (
     <div className="grid gap-1">
       {itens.map((x, i) => (
-        <div key={i} className="min-h-[22px] leading-[22px]">
+        <div key={i} className="min-h-[22px] leading-[22px] whitespace-nowrap">
           {x}
         </div>
       ))}
