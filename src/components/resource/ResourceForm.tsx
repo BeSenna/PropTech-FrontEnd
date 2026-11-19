@@ -8,7 +8,7 @@ import { DateInputBR } from "@/components/DateInputBR";
 import { useToast } from "@/components/Toast";
 import { limparCache, usuarioApi, vinculoApi } from "@/services/moradorService";
 import { SENHA_DICA, validarSenha } from "@/lib/senha";
-import { motivoTipoBloqueado, rotuloTipo, vigente } from "@/lib/relacao";
+import { motivoOpcaoBloqueada, rotuloTipo, tiposDaOpcao, vigente } from "@/lib/relacao";
 import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
 const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
@@ -228,10 +228,8 @@ function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values:
   useEffect(() => {
     if (mode !== "create") return;
     set("_existentes", neste);
-    // tipo já marcado que deixou de ser possível neste imóvel (ex.: o padrão MORADOR para quem já é Inquilino dele) sai da escolha
-    const marcados: string[] = Array.isArray(values._tipos) ? values._tipos : [];
-    const validos = marcados.filter((t) => !motivoTipoBloqueado(t, [], neste));
-    if (validos.length !== marcados.length) set("_tipos", validos);
+    // opção escolhida que deixou de ser possível neste imóvel (ex.: o padrão MORADOR para quem já é Inquilino dele) sai da escolha
+    if (values._opcao && motivoOpcaoBloqueada(String(values._opcao), neste)) set("_opcao", "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, neste]);
 
@@ -242,7 +240,7 @@ function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values:
   }, [mode, conta]);
 
   const vigentes = neste.filter(vigente);
-  const nTipos = Array.isArray(values._tipos) ? values._tipos.length : 1;
+  const nTipos = tiposDaOpcao(String(values._opcao ?? "")).length || 1;
 
   return (
     <>

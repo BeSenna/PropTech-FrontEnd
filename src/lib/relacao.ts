@@ -6,6 +6,12 @@ import type { Rec } from '@/models/types';
 
 export const TIPOS_RELACAO = ['PROPRIETARIO', 'INQUILINO', 'MORADOR', 'TEMPORADA'] as const;
 
+// Opção do cadastro que cria as duas relações de uma vez (dono que também mora no imóvel).
+export const OPCAO_PROPRIETARIO_MORADOR = 'PROPRIETARIO+MORADOR';
+export const OPCOES_RELACAO = [...TIPOS_RELACAO, OPCAO_PROPRIETARIO_MORADOR];
+export const rotuloOpcao = (o: string) => o.split('+').join(' + ');
+export const tiposDaOpcao = (o: string) => o.split('+').filter(Boolean);
+
 export const ROTULO_TIPO: Record<string, string> = {
   PROPRIETARIO: 'Proprietário',
   INQUILINO: 'Inquilino',
@@ -34,6 +40,12 @@ export function motivoTipoBloqueado(tipo: string, marcados: string[], existentes
   }
   return null;
 }
+
+// Motivo pelo qual a opção do cadastro não está disponível para este morador neste imóvel (ou null).
+export const motivoOpcaoBloqueada = (opcao: string, existentes: Rec[]): string | null =>
+  tiposDaOpcao(opcao)
+    .map((t) => motivoTipoBloqueado(t, [], existentes))
+    .find(Boolean) ?? null;
 
 export interface GrupoImovel {
   imovelId: number;
