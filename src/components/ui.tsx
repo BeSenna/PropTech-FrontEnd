@@ -9,7 +9,7 @@ import type { ReactNode } from "react";
 export const cx = (...a: (string | false | null | undefined)[]) => a.filter(Boolean).join(" ");
 
 const BTN_BASE =
-  "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] border px-4 py-[9px] text-[12.5px] font-bold disabled:cursor-not-allowed disabled:opacity-55";
+  "inline-flex items-center gap-1.5 whitespace-nowrap rounded-[9px] border px-4 py-[9px] text-[12.5px] font-bold max-[819px]:min-h-10 disabled:cursor-not-allowed disabled:opacity-55";
 const BTN_VARIANTS = {
   primary: "border-transparent bg-primary text-white hover:bg-navy",
   ghost: "border-transparent bg-line-soft text-ink-2 hover:bg-line",
