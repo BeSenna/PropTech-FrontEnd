@@ -3,7 +3,19 @@ import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { EncerrarButton } from '@/components/EncerrarButton';
 import { blocoLetra, criarUsuario, getBlocoMap, imovelRotulo, limparCache, loadImovelOptions, loadMoradorOptions, vinculoApi } from '@/services/moradorService';
+import { motivoTipoBloqueado, rotuloTipo, TIPOS_RELACAO } from '@/lib/relacao';
+import type { Rec } from '@/models/types';
 import { idFmt, sv, quem } from './shared';
+
+// Corpo do POST /morador-imovel para um tipo (as datas e o status valem para todas as relações criadas juntas).
+const corpoCriacao = (v: Rec, tipo: string): Rec => ({
+  moradorId: v.moradorId,
+  imovelId: v.imovelId,
+  moradorImovelTipoRelacao: tipo,
+  moradorImovelDataInicio: v.moradorImovelDataInicio,
+  moradorImovelStatus: v.moradorImovelStatus,
+  ...(v.moradorImovelDataFim ? { moradorImovelDataFim: v.moradorImovelDataFim } : {}),
+});
 
 // ---------------------------------------------------------------- Vínculos (morador_imovel)
 export const vinculoCfg: ResourceConfig = {
@@ -42,19 +54,33 @@ export const vinculoCfg: ResourceConfig = {
     { name: 'moradorId', label: 'Morador', col: 'morador_id (FK)', type: 'select', required: true, loadOptions: loadMoradorOptions },
     { name: 'imovelId', label: 'Imóvel', col: 'imovel_id (FK)', type: 'select', required: true, loadOptions: loadImovelOptions },
     {
+      // cadastro: dá para marcar mais de um tipo (cada tipo vira uma relação); só Proprietário + Morador combinam
+      name: '_tipos',
+      label: 'Tipo de relação',
+      col: 'morador_imovel_tipo_relacao',
+      type: 'checkbox-group',
+      mode: 'create',
+      required: true,
+      options: TIPOS_RELACAO.map((x) => ({ value: x, label: x })),
+      optionDisabled: (tipo, marcados, values) => motivoTipoBloqueado(tipo, marcados, values._existentes ?? []),
+      fkNote: 'Marque dois tipos só para Proprietário + Morador (dono que também mora no imóvel). Cada tipo vira uma relação.',
+    },
+    {
+      // edição: uma relação tem um único tipo
       name: 'moradorImovelTipoRelacao',
       label: 'Tipo de relação',
       col: 'morador_imovel_tipo_relacao',
       type: 'radio',
+      mode: 'edit',
       required: true,
-      options: ['PROPRIETARIO', 'INQUILINO', 'MORADOR', 'TEMPORADA'].map((x) => ({ value: x, label: x })),
+      options: TIPOS_RELACAO.map((x) => ({ value: x, label: x })),
     },
     { name: 'moradorImovelDataInicio', label: 'Início', col: 'morador_imovel_data_inicio', type: 'data-br', required: true, half: true, validate: validarDataBr },
     { name: 'moradorImovelDataFim', label: 'Fim (opcional)', col: 'morador_imovel_data_fim', type: 'data-br', half: true, validate: validarDataBr },
     { name: 'moradorImovelStatus', label: 'Status', col: 'morador_imovel_status', type: 'toggle', toggleTitle: 'Vínculo ativo', toggleHint: 'Desative ao invés de excluir para manter histórico' },
   ],
   formSubtitle: '',
-  defaults: { moradorId: '', imovelId: '', moradorImovelTipoRelacao: 'MORADOR', moradorImovelDataInicio: '', moradorImovelDataFim: '', moradorImovelStatus: 1, _acesso: false, _login: '', _senha: '' },
+  defaults: { moradorId: '', imovelId: '', moradorImovelTipoRelacao: 'MORADOR', _tipos: ['MORADOR'], _existentes: [], moradorImovelDataInicio: '', moradorImovelDataFim: '', moradorImovelStatus: 1, _acesso: false, _login: '', _senha: '' },
   extraFormSection: 'vinculoAcesso',
   toForm: (r) => ({
     moradorId: r.moradorId,
@@ -65,21 +91,41 @@ export const vinculoCfg: ResourceConfig = {
     moradorImovelStatus: r.moradorImovelStatus,
     _usuarioId: r.usuarioId,
   }),
-  toPayload: (v, mode) => ({
-    moradorId: v.moradorId,
-    imovelId: v.imovelId,
-    moradorImovelTipoRelacao: v.moradorImovelTipoRelacao,
-    moradorImovelDataInicio: v.moradorImovelDataInicio,
-    moradorImovelStatus: v.moradorImovelStatus,
-    // ao editar, campo vazio envia null para o back limpar a data de fim
-    ...(v.moradorImovelDataFim ? { moradorImovelDataFim: v.moradorImovelDataFim } : mode === 'edit' ? { moradorImovelDataFim: null } : {}),
-  }),
+  toPayload: (v, mode) =>
+    mode === 'create'
+      ? corpoCriacao(v, (v._tipos as string[])[0])
+      : {
+          moradorId: v.moradorId,
+          imovelId: v.imovelId,
+          moradorImovelTipoRelacao: v.moradorImovelTipoRelacao,
+          moradorImovelDataInicio: v.moradorImovelDataInicio,
+          moradorImovelStatus: v.moradorImovelStatus,
+          // ao editar, campo vazio envia null para o back limpar a data de fim
+          moradorImovelDataFim: v.moradorImovelDataFim ? v.moradorImovelDataFim : null,
+        },
   afterSave: async (saved, v, mode) => {
-    // Conceder acesso = criar o usuário já ligado a esta relação (POST /usuario com moradorImovelId)
-    if (mode === 'create' && v._acesso) {
-      await criarUsuario({ usuarioLogin: String(v._login).trim(), senha: v._senha, usuarioPerfil: 'MORADOR', moradorImovelId: saved.moradorImovelId });
-      limparCache();
+    if (mode !== 'create') return;
+    // O formulário salvou a 1ª relação. Aqui vêm (1) o login e (2) os outros tipos marcados. O login vem antes das
+    // outras relações: o backend faz as novas relações do mesmo morador herdarem a conta já existente.
+    const erros: string[] = [];
+    // Conceder acesso = criar o usuário já ligado a esta relação (POST /usuario com moradorImovelId).
+    // Se a relação já herdou a conta do morador (usuarioId preenchido), não há o que criar.
+    if (v._acesso && !saved.usuarioId) {
+      try {
+        await criarUsuario({ usuarioLogin: String(v._login).trim(), senha: v._senha, usuarioPerfil: 'MORADOR', moradorImovelId: saved.moradorImovelId });
+      } catch (e) {
+        erros.push(`login não criado (${(e as Error).message})`);
+      }
     }
+    for (const tipo of (v._tipos as string[]).filter((t) => t !== saved.moradorImovelTipoRelacao)) {
+      try {
+        await vinculoApi.create(corpoCriacao(v, tipo));
+      } catch (e) {
+        erros.push(`relação de ${rotuloTipo(tipo)} não criada (${(e as Error).message})`);
+      }
+    }
+    limparCache();
+    if (erros.length) throw new Error(erros.join('; '));
   },
   rowTitle: (r) => `${r.morador?.moradorNome ?? 'Morador'} · ${r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : `Imóvel #${r.imovelId}`}`,
   idLabel: (r) => `Código ${idFmt(r.moradorImovelId)}`,

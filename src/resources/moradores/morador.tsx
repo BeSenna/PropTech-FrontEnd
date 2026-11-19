@@ -1,11 +1,25 @@
+import type { ReactNode } from 'react';
 import { cpfValido, fmtCpf, fmtDate, fmtDateTime, hoje, onlyDigits, toDateInput, validarDataBr } from '@/lib/format';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
+import { gruposDeImoveis } from '@/lib/relacao';
 import { blocoLetra, imovelRotulo, moradorApi, vinculosPorMorador } from '@/services/moradorService';
 import { idFmt, ativoTxt, vazio, sv, quem } from './shared';
 
 // ---------------------------------------------------------------- Moradores
-const vinculoAtual = (vs: Rec[] = []) => vs.find((v) => v.estado !== 'ENCERRADO' && v.moradorImovelStatus === 1) ?? vs[0];
+// uma linha por imóvel; sem relação mostra "—"
+const Linhas = ({ itens }: { itens: ReactNode[] }) =>
+  itens.length === 0 ? (
+    <>—</>
+  ) : (
+    <div className="grid gap-1">
+      {itens.map((x, i) => (
+        <div key={i} className="min-h-[22px] leading-[22px]">
+          {x}
+        </div>
+      ))}
+    </div>
+  );
 
 export const moradorCfg: ResourceConfig = {
   key: 'morador',
@@ -20,22 +34,23 @@ export const moradorCfg: ResourceConfig = {
     { key: 'moradorNome', label: 'Morador', render: (r) => quem(r.moradorNome), sortValue: sv((r) => r.moradorNome) },
     { key: 'moradorCpf', label: 'CPF', render: (r) => fmtCpf(r.moradorCpf) },
     { key: 'contato', label: 'Contato', render: (r) => r.moradorEmail || r.moradorTelefone || '—' },
-    {
-      key: 'imovel',
-      label: 'Imóvel',
-      render: (r) => {
-        const v = vinculoAtual(r._vinculos);
-        return v ? `Apto ${v.imovel?.imovelNumero}` : '—';
-      },
-    },
-    { key: 'bloco', label: 'Bloco', render: (r) => blocoLetra(vinculoAtual(r._vinculos)?.blocoNome) },
+    // quem tem mais de um imóvel (ou é Proprietário + Morador do mesmo) aparece com uma linha por imóvel
+    { key: 'imovel', label: 'Imóvel', render: (r) => <Linhas itens={gruposDeImoveis(r._vinculos).map((g) => `Apto ${g.imovel?.imovelNumero}`)} /> },
+    { key: 'bloco', label: 'Bloco', render: (r) => <Linhas itens={gruposDeImoveis(r._vinculos).map((g) => blocoLetra(g.blocoNome))} /> },
     {
       key: 'relacao',
       label: 'Relação',
-      render: (r) => {
-        const v = vinculoAtual(r._vinculos);
-        return v ? <Badge>{v.moradorImovelTipoRelacao}</Badge> : '—';
-      },
+      render: (r) => (
+        <Linhas
+          itens={gruposDeImoveis(r._vinculos).map((g) => (
+            <span key={g.imovelId} className="flex gap-1">
+              {g.tipos.map((t) => (
+                <Badge key={t}>{t}</Badge>
+              ))}
+            </span>
+          ))}
+        />
+      ),
     },
     { key: 'moradorStatus', label: 'Status', render: (r) => <Badge>{ativoTxt(r.moradorStatus)}</Badge>, sortValue: sv((r) => r.moradorStatus) },
   ],
