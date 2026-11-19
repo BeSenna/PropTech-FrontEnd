@@ -266,18 +266,27 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
     case "radio":
       return wrap(
         <div className="flex flex-wrap gap-2" role="radiogroup">
-          {options.map((o) => (
-            <button
-              key={String(o.value)}
-              type="button"
-              role="radio"
-              aria-checked={value === o.value}
-              className={cx("rounded-[9px] border px-3.5 py-2 text-xs font-bold", value === o.value ? "border-primary bg-soft-blue text-primary" : "border-line bg-white")}
-              onClick={() => onChange(o.value)}
-            >
-              {o.label}
-            </button>
-          ))}
+          {options.map((o) => {
+            const sel = value === o.value;
+            // opção que não está disponível agora (ex.: relação que já existe): fica apagada, com o motivo na dica
+            const motivo = !sel && f.optionDisabled ? f.optionDisabled(String(o.value), [], values) : null;
+            return (
+              <button
+                key={String(o.value)}
+                type="button"
+                role="radio"
+                aria-checked={sel}
+                aria-disabled={motivo ? true : undefined}
+                title={motivo ?? undefined}
+                className={cx("rounded-[9px] border px-3.5 py-2 text-xs font-bold", sel ? "border-primary bg-soft-blue text-primary" : "border-line bg-white", motivo && "cursor-not-allowed opacity-45")}
+                onClick={() => {
+                  if (!motivo) onChange(o.value);
+                }}
+              >
+                {o.label}
+              </button>
+            );
+          })}
         </div>,
       );
     case "checkbox-group":
