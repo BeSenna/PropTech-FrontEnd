@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { cx, searchCls } from "@/components/ui";
 import { iniciais } from "@/lib/format";
 import { totalDe } from "@/services/moradorService";
@@ -69,14 +70,14 @@ function Item({ to, label, n, sub }: { to: string; label: string; n?: number; su
       className={cx(
         "my-0.5 flex items-center gap-2.5 rounded-[10px] py-[9px] pr-3 font-medium",
         sub ? "pl-[22px]" : "pl-3",
-        ativo ? "bg-accent font-bold text-navy" : "text-side hover:bg-white/7",
+        ativo ? "bg-accent font-bold text-on-accent" : "text-side hover:bg-white/7",
         to !== INICIO && "before:flex-none before:rounded-full before:content-['']",
         to !== INICIO && (sub ? "before:size-1" : "before:size-1.5"),
         to !== INICIO && (ativo ? "before:bg-navy/45" : "before:bg-side-muted"),
       )}
     >
       {label}
-      {n !== undefined && <span className={cx("ml-auto text-[10.5px] font-bold", ativo ? "text-navy" : "text-white")}>{n}</span>}
+      {n !== undefined && <span className={cx("ml-auto text-[10.5px] font-bold", ativo ? "text-on-accent" : "text-white")}>{n}</span>}
     </Link>
   );
 }
@@ -144,7 +145,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
         aria-label="Menu principal"
       >
         <div className="flex items-center gap-2.5 pb-3.5">
-          <div className="grid size-8 flex-none place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-navy">PT</div>
+          <div className="grid size-8 flex-none place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-on-accent">PT</div>
           <div>
             <strong className="block text-sm text-white">PropTech</strong>
           </div>
@@ -153,7 +154,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
         <form onSubmit={buscar} className="mb-2 min-[820px]:hidden">
-          <input className={cx(searchCls, "h-10 w-full bg-white text-ink-2 placeholder:text-muted")} type="search" placeholder="Buscar em Moradores..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar moradores" />
+          <input className={cx(searchCls, "h-10 w-full bg-surface text-ink-2 placeholder:text-muted")} type="search" placeholder="Buscar em Moradores..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar moradores" />
         </form>
         <div className="mt-1.5 mb-1 text-[10px] font-bold tracking-[0.04em] text-[#7c8ac2] uppercase">Início</div>
         <Item to={INICIO} label="Dashboard" />
@@ -183,7 +184,7 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
         <Item to="/avisos" label="Avisos" n={counts.avisos} />
 
         <div className="sticky bottom-0 mt-auto flex items-center gap-2.5 rounded-[10px] border border-white/15 bg-navy p-2.5 shadow-[0_-10px_12px_var(--color-navy)]">
-          <div className="grid size-8 flex-none place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-navy">{iniciais(user?.usuarioLogin)}</div>
+          <div className="grid size-8 flex-none place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-title">{iniciais(user?.usuarioLogin)}</div>
           <div>
             <strong className="block text-xs text-white">{user?.usuarioLogin}</strong>
             <small className="text-[10.5px] text-side-muted">
@@ -197,8 +198,8 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-5 flex h-16 items-center gap-3 border-b border-line bg-white px-4 min-[820px]:px-7">
-          <button type="button" className="grid size-10 flex-none place-items-center rounded-[10px] border border-line bg-white min-[820px]:hidden" aria-label="Abrir menu" aria-expanded={menuAberto} aria-controls="menu-principal" onClick={() => setMenuAberto(true)}>
+        <header className="sticky top-0 z-5 flex h-16 items-center gap-3 border-b border-line bg-surface px-4 min-[820px]:px-7">
+          <button type="button" className="grid size-10 flex-none place-items-center rounded-[10px] border border-line bg-surface min-[820px]:hidden" aria-label="Abrir menu" aria-expanded={menuAberto} aria-controls="menu-principal" onClick={() => setMenuAberto(true)}>
             <svg width="18" height="14" viewBox="0 0 18 14" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <path d="M1 1h16M1 7h16M1 13h16" />
             </svg>
@@ -221,7 +222,8 @@ export function SindicoShell({ children }: { children: React.ReactNode }) {
             <form onSubmit={buscar} className="max-[819px]:hidden">
               <input className={cx(searchCls, "w-60")} type="search" placeholder="Buscar em Moradores..." value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar moradores" />
             </form>
-            <button className="size-10 rounded-[10px] border border-line bg-white min-[820px]:size-9" aria-label="Notificações" type="button" onClick={() => router.push("/avisos")}>
+            <ThemeToggle />
+            <button className="size-10 rounded-[10px] border border-line bg-surface min-[820px]:size-9" aria-label="Notificações" type="button" onClick={() => router.push("/avisos")}>
               🔔
             </button>
             <div className="grid size-[34px] place-items-center rounded-[10px] bg-primary text-[11.5px] font-extrabold text-white" title={user?.usuarioLogin}>

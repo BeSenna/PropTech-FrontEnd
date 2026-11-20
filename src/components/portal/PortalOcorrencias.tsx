@@ -27,7 +27,7 @@ export function PortalOcorrencias() {
       <Card title="Ocorrências" count={os.length}>
         {os.length === 0 && <Empty>Você ainda não abriu ocorrências.</Empty>}
         {os.map((o) => (
-          <RowItem key={o.id} ico="⚠️" tint="#fef3c7" title={o.ocorrencia_titulo} sub={fmtDate(o.ocorrencia_data_ocorrencia)} right={<Badge>{o.ocorrencia_tipo}</Badge>} />
+          <RowItem key={o.id} ico="⚠️" tint="var(--tint-amber)" title={o.ocorrencia_titulo} sub={fmtDate(o.ocorrencia_data_ocorrencia)} right={<Badge>{o.ocorrencia_tipo}</Badge>} />
         ))}
       </Card>
     </>

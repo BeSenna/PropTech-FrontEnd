@@ -65,7 +65,7 @@ export function PortalCobrancas() {
               key={c.id}
               to={`/portal/cobrancas/${c.id}`}
               ico="🧾"
-              tint="#cffafe"
+              tint="var(--tint-cyan)"
               title={`${comp(c.competencia)} · ${fmtMoney(c.valor)}`}
               sub={`${c.situacao === "PAGO" ? "Pago" : c.situacao === "VENCIDO" ? "Venceu" : "Vence"} em ${fmtDate(c.vencimento)}${varios ? ` · ${rotulo(c.imovelId)}` : ""}`}
               right={<Badge>{c.situacao}</Badge>}

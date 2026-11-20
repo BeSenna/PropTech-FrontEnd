@@ -9,10 +9,10 @@ import { resumoFinanceiro, type ResumoFinanceiro } from "@/services/financeiroSe
 
 const CAD_MODULES = (
   <ModuleGrid>
-    <ModuleCard icon="🏢" title="Blocos" desc="Nome, descrição, status" to="/blocos" tint="#eef2fb" />
-    <ModuleCard icon="🏠" title="Imóveis" desc="Tipo, matrícula, IPTU" to="/imoveis" tint="#d1fae5" />
-    <ModuleCard icon="👤" title="Moradores" desc="Dados pessoais e contato" to="/moradores" tint="#fef3c7" />
-    <ModuleCard icon="🔗" title="Relação" desc="Tipo, vigência" to="/vinculos" tint="#fce7f3" />
+    <ModuleCard icon="🏢" title="Blocos" desc="Nome, descrição, status" to="/blocos" tint="var(--tint-blue)" />
+    <ModuleCard icon="🏠" title="Imóveis" desc="Tipo, matrícula, IPTU" to="/imoveis" tint="var(--tint-green)" />
+    <ModuleCard icon="👤" title="Moradores" desc="Dados pessoais e contato" to="/moradores" tint="var(--tint-amber)" />
+    <ModuleCard icon="🔗" title="Relação" desc="Tipo, vigência" to="/vinculos" tint="var(--tint-pink)" />
   </ModuleGrid>
 );
 
@@ -40,9 +40,9 @@ export function Dashboard() {
       {CAD_MODULES}
       <SectionLabel>Financeiro</SectionLabel>
       <ModuleGrid three>
-        <ModuleCard icon="🧾" title="Cobranças" desc="Competência, valor, vencimento, boleto" to="/cobrancas" tint="#cffafe" />
-        <ModuleCard icon="💸" title="Despesas" desc="Fornecedor, valor, categoria" to="/despesas" tint="#fee2e2" />
-        <ModuleCard icon="💰" title="Receitas" desc="Valor, categoria" to="/receitas" tint="#d1fae5" />
+        <ModuleCard icon="🧾" title="Cobranças" desc="Competência, valor, vencimento, boleto" to="/cobrancas" tint="var(--tint-cyan)" />
+        <ModuleCard icon="💸" title="Despesas" desc="Fornecedor, valor, categoria" to="/despesas" tint="var(--tint-red)" />
+        <ModuleCard icon="💰" title="Receitas" desc="Valor, categoria" to="/receitas" tint="var(--tint-green)" />
       </ModuleGrid>
     </>
   );
@@ -85,11 +85,11 @@ export function FinanceiroOverview() {
       </StatGrid>
       <SectionLabel>Módulos</SectionLabel>
       <ModuleGrid>
-        <ModuleCard icon="🧾" title="Cobranças" desc="Valor, vencimento" to="/cobrancas" tint="#cffafe" />
-        <ModuleCard icon="🏷️" title="Boletos" desc="Linha digitável, PDF" to="/boletos" tint="#fef3c7" />
-        <ModuleCard icon="💳" title="Pagamentos" desc="Forma, valor pago" to="/pagamentos" tint="#ede9fe" />
-        <ModuleCard icon="📤" title="Despesas" desc="Fornecedor, categoria" to="/despesas" tint="#fee2e2" />
-        <ModuleCard icon="📥" title="Receitas" desc="Categoria, valor" to="/receitas" tint="#d1fae5" />
+        <ModuleCard icon="🧾" title="Cobranças" desc="Valor, vencimento" to="/cobrancas" tint="var(--tint-cyan)" />
+        <ModuleCard icon="🏷️" title="Boletos" desc="Linha digitável, PDF" to="/boletos" tint="var(--tint-amber)" />
+        <ModuleCard icon="💳" title="Pagamentos" desc="Forma, valor pago" to="/pagamentos" tint="var(--tint-violet)" />
+        <ModuleCard icon="📤" title="Despesas" desc="Fornecedor, categoria" to="/despesas" tint="var(--tint-red)" />
+        <ModuleCard icon="📥" title="Receitas" desc="Categoria, valor" to="/receitas" tint="var(--tint-green)" />
       </ModuleGrid>
     </>
   );
@@ -115,9 +115,9 @@ export function ServicosOverview() {
       </StatGrid>
       <SectionLabel>Módulos</SectionLabel>
       <ModuleGrid three>
-        <ModuleCard icon="🏊" title="Áreas Comuns" desc="Nome, capacidade" to="/areas-comuns" tint="#cffafe" />
-        <ModuleCard icon="⚠️" title="Ocorrências" desc="Título, tipo, morador" to="/ocorrencias" tint="#fef3c7" />
-        <ModuleCard icon="📢" title="Avisos" desc="Título, publicação, expiração" to="/avisos" tint="#fce7f3" />
+        <ModuleCard icon="🏊" title="Áreas Comuns" desc="Nome, capacidade" to="/areas-comuns" tint="var(--tint-cyan)" />
+        <ModuleCard icon="⚠️" title="Ocorrências" desc="Título, tipo, morador" to="/ocorrencias" tint="var(--tint-amber)" />
+        <ModuleCard icon="📢" title="Avisos" desc="Título, publicação, expiração" to="/avisos" tint="var(--tint-pink)" />
       </ModuleGrid>
     </>
   );

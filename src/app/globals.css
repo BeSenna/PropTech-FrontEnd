@@ -4,8 +4,14 @@
 @theme {
   --color-navy: #14265e;
   --color-primary: #1e3a8a;
-  --color-accent: #f59e0b;
+  --color-accent: #0f766e;
+  --color-on-accent: #ffffff;
+  --color-amber: #f59e0b;
   --color-page: #f5f6fa;
+  --color-surface: #ffffff;
+  --color-subtle: #f8f9fd;
+  --color-title: #14265e;
+  --color-link: #1e3a8a;
   --color-line: #e5e7eb;
   --color-line-soft: #eef0f3;
   --color-ink: #111827;
@@ -23,6 +29,16 @@
   --color-bad-fg: #991b1b;
   --color-soft-blue: #eef2fb;
   --color-pink: #db2777;
+
+  /* fundos dos ícones dos cards (usados via var(--tint-*)) */
+  --tint-blue: #eef2fb;
+  --tint-green: #d1fae5;
+  --tint-amber: #fef3c7;
+  --tint-pink: #fce7f3;
+  --tint-cyan: #cffafe;
+  --tint-red: #fee2e2;
+  --tint-violet: #ede9fe;
+  --tint-sky: #e0f2fe;
 
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --shadow-card: 0 1px 2px rgba(20, 38, 94, 0.05), 0 4px 14px rgba(20, 38, 94, 0.06);
@@ -55,6 +71,46 @@
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
   }
+}
+
+/* Tema escuro: só redefine os tokens; os componentes não mudam.
+   Ativado por data-theme="dark" no <html> (ver ThemeToggle e o script do layout). */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-navy: #0a0f1e;
+  --color-primary: #3b5fd6;
+  --color-accent: #2dd4bf;
+  --color-on-accent: #0b1220;
+  --color-page: #0f1420;
+  --color-surface: #171d2e;
+  --color-subtle: #1c2438;
+  --color-title: #e6ebf8;
+  --color-link: #9db4ff;
+  --color-line: #2b3552;
+  --color-line-soft: #252e45;
+  --color-ink: #e8ecf5;
+  --color-ink-2: #c3cadb;
+  --color-muted: #9aa4ba;
+  --color-muted-2: #7b869e;
+  --color-soft-blue: #1f2b50;
+  --color-ok-bg: #12392d;
+  --color-ok-fg: #6ee7b7;
+  --color-warn-bg: #3d2f10;
+  --color-warn-fg: #fcd34d;
+  --color-bad-bg: #401d1f;
+  --color-bad-fg: #fca5a5;
+
+  --tint-blue: #1f2b50;
+  --tint-green: #12392d;
+  --tint-amber: #3d2f10;
+  --tint-pink: #3e1b2e;
+  --tint-cyan: #0e3a42;
+  --tint-red: #401d1f;
+  --tint-violet: #2a2252;
+  --tint-sky: #0f3047;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3);
+  --shadow-lift: 0 6px 20px rgba(0, 0, 0, 0.5);
 }
 
 /* campo de busca com a lupa do Figma */

@@ -249,7 +249,7 @@ function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values:
           Este morador já tem neste imóvel: <strong>{vigentes.map((x) => rotuloTipo(String(x.moradorImovelTipoRelacao))).join(" e ")}</strong>. No mesmo imóvel só é permitido somar Proprietário + Morador.
         </div>
       )}
-      <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-[#f8f9fd] px-4 py-3.5">
+      <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-subtle px-4 py-3.5">
         <div className="text-[11.5px] font-bold">Acesso ao sistema</div>
         {mode === "edit" ? (
           <div className="text-[11px] text-muted">
@@ -291,7 +291,7 @@ function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values:
 
 function Toggle({ title, hint, on, onChange, wide }: { title?: string; hint?: string; on: boolean; onChange: () => void; wide?: boolean }) {
   return (
-    <div className={cx("flex items-center justify-between gap-[18px] rounded-[10px] border border-line bg-white px-3.5 py-[11px]", !wide && "max-w-[360px]")}>
+    <div className={cx("flex items-center justify-between gap-[18px] rounded-[10px] border border-line bg-surface px-3.5 py-[11px]", !wide && "max-w-[360px]")}>
       <span>
         <strong className="block text-[12.5px]">{title}</strong>
         {hint && <small className="text-[11px] text-muted">{hint}</small>}
@@ -349,7 +349,7 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
                 aria-checked={sel}
                 aria-disabled={motivo ? true : undefined}
                 title={motivo ?? undefined}
-                className={cx("rounded-[9px] border px-3.5 py-2 text-xs font-bold", sel ? "border-primary bg-soft-blue text-primary" : "border-line bg-white", motivo && "cursor-not-allowed opacity-45")}
+                className={cx("rounded-[9px] border px-3.5 py-2 text-xs font-bold", sel ? "border-primary bg-soft-blue text-link" : "border-line bg-surface", motivo && "cursor-not-allowed opacity-45")}
                 onClick={() => {
                   if (!motivo) onChange(o.value);
                 }}

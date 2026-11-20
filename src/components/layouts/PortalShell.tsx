@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { ErrorBox, Loading, cx } from "@/components/ui";
 import { iniciais } from "@/lib/format";
 import type { Rec } from "@/models/types";
@@ -73,7 +74,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
       <header className="h-[72px] bg-navy text-white">
         <div className="flex h-full items-center gap-3 overflow-x-auto px-4 min-[820px]:gap-8 min-[820px]:px-10">
           <Link href="/portal" className="flex flex-none items-center gap-2.5">
-            <div className="grid size-8 place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-navy">PT</div>
+            <div className="grid size-8 place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-on-accent">PT</div>
             <strong className="text-sm text-white">PropTech</strong>
           </Link>
           <nav className="flex flex-1 gap-4 min-[820px]:gap-[26px]" aria-label="Portal do morador">
@@ -86,8 +87,9 @@ export function PortalShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          <ThemeToggle variant="escuro" />
           <div className="flex flex-none items-center gap-2.5">
-            <div className="grid size-8 place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-navy">{iniciais(nome)}</div>
+            <div className="grid size-8 place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-title">{iniciais(nome)}</div>
             <div>
               <strong className="block text-xs max-[820px]:hidden">{nome}</strong>
               <small>

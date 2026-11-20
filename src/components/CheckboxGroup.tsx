@@ -42,7 +42,7 @@ export function CheckboxGroup({
             }}
             className={cx(
               'rounded-[9px] border px-3.5 py-2 text-xs font-bold',
-              on ? 'border-primary bg-soft-blue text-primary' : 'border-line bg-white',
+              on ? 'border-primary bg-soft-blue text-link' : 'border-line bg-surface',
               motivo && 'cursor-not-allowed opacity-45',
             )}
           >
