@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { btn, ErrorBox, inputCls } from "@/components/ui";
 
 const lbl = "text-[11.5px] font-bold text-ink-2";
@@ -34,15 +35,16 @@ export default function Login() {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center bg-linear-to-br from-navy via-[#1b2f70] to-primary p-4">
-      <div className="w-full max-w-[430px] rounded-2xl bg-white p-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
+    <div className="relative grid min-h-screen place-items-center bg-linear-to-br from-navy via-[#1b2f70] to-primary p-4">
+      <ThemeToggle variant="escuro" className="absolute top-4 right-4" />
+      <div className="w-full max-w-[430px] rounded-2xl bg-surface p-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
         <div className="flex items-center gap-2.5 pb-3.5">
-          <div className="grid size-[38px] flex-none place-items-center rounded-[9px] bg-accent text-[15px] font-extrabold text-navy">PT</div>
+          <div className="grid size-[38px] flex-none place-items-center rounded-[9px] bg-accent text-[15px] font-extrabold text-on-accent">PT</div>
           <div>
-            <strong className="block text-sm text-navy">PropTech</strong>
+            <strong className="block text-sm text-title">PropTech</strong>
           </div>
         </div>
-        <h1 className="m-0 mt-2 text-[22px] font-extrabold text-navy">Entrar no PropTech</h1>
+        <h1 className="m-0 mt-2 text-[22px] font-extrabold text-title">Entrar no PropTech</h1>
         <p className="mt-1 mb-[18px] text-[12.5px] text-muted"></p>
         {/*<p className="mt-1 mb-[18px] text-[12.5px] text-muted">Use seu login e senha. O sistema abre a área correta para o seu perfil.</p>*/}
         {erro && <ErrorBox>{erro}</ErrorBox>}

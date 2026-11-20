@@ -10,8 +10,8 @@ const PAGE_SIZE = 10;
 type Filters = Record<string, string | number | undefined>;
 
 // celular/tablet: a 1ª coluna (quem é o registro) fica fixa enquanto a tabela rola para o lado
-const PRIMEIRA_COL_TH = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-white max-[819px]:border-r max-[819px]:border-line-soft";
-const PRIMEIRA_COL_TD = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-white max-[819px]:border-r max-[819px]:border-line-soft max-[819px]:min-w-32 max-[819px]:max-w-40 group-hover:max-[819px]:bg-[#f8f9fd]";
+const PRIMEIRA_COL_TH = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-surface max-[819px]:border-r max-[819px]:border-line-soft";
+const PRIMEIRA_COL_TD = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1] max-[819px]:bg-surface max-[819px]:border-r max-[819px]:border-line-soft max-[819px]:min-w-32 max-[819px]:max-w-40 group-hover:max-[819px]:bg-subtle";
 
 export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   const router = useRouter();
@@ -188,7 +188,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
 
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
         {cfg.searchable && (
-          <input className={cx(searchCls, "w-[280px] max-w-full bg-white!")} type="search" placeholder={cfg.searchPlaceholder ?? "Buscar..."} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar" />
+          <input className={cx(searchCls, "w-[280px] max-w-full bg-surface!")} type="search" placeholder={cfg.searchPlaceholder ?? "Buscar..."} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar" />
         )}
         {cfg.selectFilters?.map((s) => (
           <select
@@ -214,7 +214,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             <button
               key={c.label}
               type="button"
-              className={cx("rounded-full border px-3.5 py-1.5 text-xs font-bold max-[819px]:min-h-10", i === chip ? "border-primary bg-primary text-white" : "border-line bg-white text-ink-2")}
+              className={cx("rounded-full border px-3.5 py-1.5 text-xs font-bold max-[819px]:min-h-10", i === chip ? "border-primary bg-primary text-white" : "border-line bg-surface text-ink-2")}
               onClick={() => {
                 setChip(i);
                 setPage(1);
@@ -257,7 +257,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                   <tr
                     key={r[cfg.idKey]}
                     tabIndex={0}
-                    className="group cursor-pointer hover:bg-[#f8f9fd]"
+                    className="group cursor-pointer hover:bg-subtle"
                     onClick={() => abrir(r)}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") abrir(r);
@@ -284,18 +284,18 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             Exibindo {rows.length} de {total}
           </span>
           <div className="flex items-center gap-1">
-            <button type="button" className={`${pagBtn} border-line bg-white`} disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label="Página anterior">
+            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label="Página anterior">
               ‹
             </button>
             {pageNumbers.map((n, i) => (
               <span key={n} className="contents">
                 {i > 0 && n - pageNumbers[i - 1]! > 1 && <span>…</span>}
-                <button type="button" className={cx(pagBtn, n === page ? "border-primary bg-primary text-white" : "border-line bg-white")} onClick={() => setPage(n)}>
+                <button type="button" className={cx(pagBtn, n === page ? "border-primary bg-primary text-white" : "border-line bg-surface")} onClick={() => setPage(n)}>
                   {n}
                 </button>
               </span>
             ))}
-            <button type="button" className={`${pagBtn} border-line bg-white`} disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label="Próxima página">
+            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label="Próxima página">
               ›
             </button>
           </div>

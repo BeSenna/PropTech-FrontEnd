@@ -13,18 +13,18 @@ const BTN_BASE =
 const BTN_VARIANTS = {
   primary: "border-transparent bg-primary text-white hover:bg-navy",
   ghost: "border-transparent bg-line-soft text-ink-2 hover:bg-line",
-  outline: "border-primary bg-white text-primary",
-  amber: "border-transparent bg-accent text-white",
-  danger: "border-red-300 bg-white text-red-700",
+  outline: "border-primary bg-surface text-link",
+  amber: "border-transparent bg-accent text-on-accent",
+  danger: "border-red-300 bg-surface text-red-700",
   glass: "border-white/40 bg-white/20 text-white",
-  white: "border-transparent bg-white text-navy",
+  white: "border-transparent bg-surface text-title",
 } as const;
 export type BtnVariant = keyof typeof BTN_VARIANTS;
 /** classes de botão — serve para <button> e para <Link> */
 export const btn = (v: BtnVariant = "primary") => `${BTN_BASE} ${BTN_VARIANTS[v]}`;
 
 const INPUT_BASE =
-  "rounded-[10px] border border-line bg-white px-3 py-2.5 text-[13px] focus:border-primary focus:shadow-[0_0_0_3px_rgba(30,58,138,0.12)] focus:outline-none";
+  "rounded-[10px] border border-line bg-surface px-3 py-2.5 text-[13px] focus:border-primary focus:shadow-[0_0_0_3px_rgba(30,58,138,0.12)] focus:outline-none";
 export const inputCls = `w-full ${INPUT_BASE}`;
 /** igual ao input, sem largura fixa (para selects de filtro na barra) */
 export const inputAutoCls = `${INPUT_BASE} w-auto min-w-40`;
@@ -46,14 +46,14 @@ export function Badge({ children }: { children: string }) {
       : VERMELHO.includes(k)
         ? "bg-bad-bg text-bad-fg"
         : AZUL.includes(k)
-          ? "bg-soft-blue text-primary"
+          ? "bg-soft-blue text-link"
           : "bg-line-soft text-ink-2";
   return <span className={`inline-block rounded-full px-[9px] py-0.5 text-[10px] font-extrabold tracking-[0.02em] uppercase ${cor}`}>{children}</span>;
 }
 
 export function MockTag({ children = "DADOS SIMULADOS", blue }: { children?: string; blue?: boolean }) {
   return (
-    <span className={cx("ml-2 inline-block rounded-full px-2 py-px align-middle text-[9.5px] font-extrabold tracking-[0.03em]", blue ? "bg-soft-blue text-primary" : "bg-warn-bg text-warn-fg")}>
+    <span className={cx("ml-2 inline-block rounded-full px-2 py-px align-middle text-[9.5px] font-extrabold tracking-[0.03em]", blue ? "bg-soft-blue text-link" : "bg-warn-bg text-warn-fg")}>
       {children}
     </span>
   );
@@ -64,7 +64,7 @@ export function PageHeader({ title, sub, actions, back = true }: { title: string
   return (
     <div className="mb-[18px] flex flex-wrap items-start justify-between gap-4">
       <div>
-        <h1 className="m-0 text-[22px] font-extrabold tracking-[-0.01em] text-navy">{title}</h1>
+        <h1 className="m-0 text-[22px] font-extrabold tracking-[-0.01em] text-title">{title}</h1>
         {sub && <div className="mt-1 text-[12.5px] text-muted">{sub}</div>}
       </div>
       <div className="flex flex-wrap justify-end gap-2.5">
@@ -81,11 +81,11 @@ export function PageHeader({ title, sub, actions, back = true }: { title: string
 
 export function Card({ title, count, children, className = "" }: { title?: string; count?: number; children: ReactNode; className?: string }) {
   return (
-    <section className={`overflow-hidden rounded-xl bg-white shadow-card ${className}`}>
+    <section className={`overflow-hidden rounded-xl bg-surface shadow-card ${className}`}>
       {title && (
         <header className="flex items-center justify-between border-b border-line-soft px-5 py-4">
           <h3 className="m-0 text-sm font-bold">{title}</h3>
-          {count !== undefined && <span className="rounded-full bg-soft-blue px-2 py-0.5 text-[10.5px] font-bold text-primary">{count}</span>}
+          {count !== undefined && <span className="rounded-full bg-soft-blue px-2 py-0.5 text-[10.5px] font-bold text-link">{count}</span>}
         </header>
       )}
       {children}
@@ -93,11 +93,11 @@ export function Card({ title, count, children, className = "" }: { title?: strin
   );
 }
 
-const STAT_BORDER = { navy: "border-l-navy", green: "border-l-ok", amber: "border-l-accent", pink: "border-l-pink" } as const;
+const STAT_BORDER = { navy: "border-l-primary", green: "border-l-ok", amber: "border-l-amber", pink: "border-l-pink" } as const;
 export function StatCard({ value, label, color, className = "" }: { value: ReactNode; label: string; color: keyof typeof STAT_BORDER; className?: string }) {
   return (
-    <div className={`rounded-xl border-l-[3px] bg-white px-5 py-[22px] shadow-card ${STAT_BORDER[color]} ${className}`}>
-      <div className="text-[26px] leading-[1.1] font-extrabold text-navy">{value}</div>
+    <div className={`rounded-xl border-l-[3px] bg-surface px-5 py-[22px] shadow-card ${STAT_BORDER[color]} ${className}`}>
+      <div className="text-[26px] leading-[1.1] font-extrabold text-title">{value}</div>
       <div className="mt-1.5 text-[11px] font-semibold tracking-[0.03em] text-muted uppercase">{label}</div>
     </div>
   );
@@ -111,13 +111,13 @@ export const SectionLabel = ({ children }: { children: ReactNode }) => <div clas
 
 export function ModuleCard({ icon, title, desc, to, tint }: { icon: string; title: string; desc: string; to: string; tint: string }) {
   return (
-    <Link href={to} className="flex flex-col gap-1 rounded-xl bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-lift">
+    <Link href={to} className="flex flex-col gap-1 rounded-xl bg-surface p-5 shadow-card transition hover:-translate-y-0.5 hover:shadow-lift">
       <span className="mb-2 grid size-[42px] place-items-center rounded-[10px] text-[19px]" style={{ background: tint }}>
         {icon}
       </span>
       <strong className="text-[15px]">{title}</strong>
       <span className="text-[11.5px] text-muted">{desc}</span>
-      <span className="mt-1.5 text-[11.5px] font-bold text-primary">Abrir listagem →</span>
+      <span className="mt-1.5 text-[11.5px] font-bold text-link">Abrir listagem →</span>
     </Link>
   );
 }
@@ -137,7 +137,7 @@ export function ErrorBox({ children }: { children: ReactNode }) {
 }
 
 /** linha "ícone + título + subtítulo + lado direito", usada nas listas do portal e nos painéis relacionados */
-export function RowItem({ ico, tint = "#eef2fb", title, sub, right, to }: { ico: string; tint?: string; title: string; sub: string; right?: ReactNode; to?: string }) {
+export function RowItem({ ico, tint = "var(--tint-blue)", title, sub, right, to }: { ico: string; tint?: string; title: string; sub: string; right?: ReactNode; to?: string }) {
   const cls = "flex items-center gap-3 border-b border-line-soft px-5 py-3.5 last:border-b-0";
   const body = (
     <>
@@ -152,7 +152,7 @@ export function RowItem({ ico, tint = "#eef2fb", title, sub, right, to }: { ico:
     </>
   );
   return to ? (
-    <Link href={to} className={`${cls} hover:bg-[#f8f9fd]`}>
+    <Link href={to} className={`${cls} hover:bg-subtle`}>
       {body}
     </Link>
   ) : (
@@ -168,7 +168,7 @@ export function RelatedList({ title, items, footer }: { title: string; items: { 
         <RowItem key={it.to ?? `${it.title}|${it.sub}`} ico={it.icon} title={it.title} sub={it.sub} to={it.to} />
       ))}
       {footer && (
-        <Link href={footer.to} className="flex items-center justify-between border-t border-line-soft px-5 py-3.5 text-[12.5px] font-bold text-primary">
+        <Link href={footer.to} className="flex items-center justify-between border-t border-line-soft px-5 py-3.5 text-[12.5px] font-bold text-link">
           <span>{footer.label}</span>
                   </Link>
       )}
@@ -186,8 +186,8 @@ export const KV = ({ k, children }: { k: string; children: ReactNode }) => (
 
 const HERO_BG = {
   navy: "from-navy to-primary",
-  amber: "from-[#92400e] to-accent",
-  green: "from-ok-fg to-ok",
+  amber: "from-[#92400e] to-amber",
+  green: "from-[#065f46] to-ok",
   pink: "from-[#9d174d] to-pink",
 } as const;
 export function Hero({ color, children, actions }: { color: keyof typeof HERO_BG; children: ReactNode; actions?: ReactNode }) {

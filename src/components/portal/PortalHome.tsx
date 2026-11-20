@@ -41,13 +41,13 @@ export function PortalHome() {
         <Card title="Minhas próximas reservas">
           {reservas.length === 0 && <Empty>Nenhuma reserva ativa.</Empty>}
           {reservas.slice(0, 4).map((r) => (
-            <RowItem key={r.id} ico="📅" tint="#ede9fe" title={r.area_comum_label} sub={`${fmtDate(r.reserva_data_reserva)} · ${horario(r)}`} right={<Badge>{r.reserva_tipo}</Badge>} />
+            <RowItem key={r.id} ico="📅" tint="var(--tint-violet)" title={r.area_comum_label} sub={`${fmtDate(r.reserva_data_reserva)} · ${horario(r)}`} right={<Badge>{r.reserva_tipo}</Badge>} />
           ))}
         </Card>
         <Card title="Avisos recentes">
           {avisos.length === 0 && <Empty>Nenhum aviso.</Empty>}
           {avisos.slice(0, 4).map((a) => (
-            <RowItem key={a.id} ico="📢" tint="#e0f2fe" title={a.avisos_titulo} sub={fmtDate(a.avisos_data_publicacao)} />
+            <RowItem key={a.id} ico="📢" tint="var(--tint-sky)" title={a.avisos_titulo} sub={fmtDate(a.avisos_data_publicacao)} />
           ))}
         </Card>
       </DetailGrid>

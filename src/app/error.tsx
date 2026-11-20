@@ -12,7 +12,7 @@ export default function ErroDaPagina({ error, retry }: { error: unknown; retry: 
   return (
     <div className="grid min-h-screen place-items-center p-6 text-center">
       <div role="alert">
-        <h1 className="m-0 text-[22px] font-extrabold text-navy">Algo deu errado</h1>
+        <h1 className="m-0 text-[22px] font-extrabold text-title">Algo deu errado</h1>
         <p className="mt-1 mb-4 text-muted">Não foi possível exibir esta página. Tente novamente; se continuar, avise o suporte.</p>
         <button type="button" onClick={() => retry()} className="rounded-[9px] bg-primary px-4 py-[9px] text-[12.5px] font-bold text-white">
           Tentar novamente

@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Providers } from "./providers";
 import "./globals.css";
 
+// Aplica o tema salvo (ou o do sistema) antes da primeira pintura, para não piscar o claro.
+const TEMA_INICIAL = `try{var t=localStorage.getItem("proptech-tema");if(t!=="dark"&&t!=="light")t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light";document.documentElement.dataset.theme=t}catch(e){}`;
+
 export const metadata: Metadata = {
   title: "PropTech · Moradores",
   description: "Gestão de condomínio — módulo Moradores",
@@ -9,8 +12,9 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: TEMA_INICIAL }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         {/* eslint-disable-next-line @next/next/no-page-custom-font -- App Router: o layout raiz vale para todas as páginas */}

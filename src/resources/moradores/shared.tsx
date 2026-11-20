@@ -9,7 +9,7 @@ export const vazio = (v: unknown) => (v === null || v === undefined || v === '' 
 export const sv = (fn: (r: Rec) => string | number) => fn;
 export const quem = (nome: string) => (
   <div className="flex items-center gap-2.5 font-bold">
-    <i className="grid size-7 place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-primary not-italic">{iniciais(nome)}</i>
+    <i className="grid size-7 place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-link not-italic">{iniciais(nome)}</i>
     {nome}
   </div>
 );

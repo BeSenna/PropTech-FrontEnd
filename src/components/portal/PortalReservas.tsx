@@ -27,7 +27,7 @@ export function PortalReservas() {
       <Card title="Reservas" count={rs.length}>
         {rs.length === 0 && <Empty>Você ainda não fez reservas.</Empty>}
         {rs.map((r) => (
-          <RowItem key={r.id} ico="📅" tint="#ede9fe" title={r.area_comum_label} sub={`${fmtDate(r.reserva_data_reserva)} · ${horario(r)}`} right={<Badge>{r.reserva_tipo}</Badge>} />
+          <RowItem key={r.id} ico="📅" tint="var(--tint-violet)" title={r.area_comum_label} sub={`${fmtDate(r.reserva_data_reserva)} · ${horario(r)}`} right={<Badge>{r.reserva_tipo}</Badge>} />
         ))}
       </Card>
     </>
