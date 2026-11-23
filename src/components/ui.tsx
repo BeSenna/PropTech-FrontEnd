@@ -94,12 +94,21 @@ export function Card({ title, count, children, className = "" }: { title?: strin
 }
 
 const STAT_BORDER = { navy: "border-l-primary", green: "border-l-ok", amber: "border-l-amber", pink: "border-l-pink" } as const;
-export function StatCard({ value, label, color, className = "" }: { value: ReactNode; label: string; color: keyof typeof STAT_BORDER; className?: string }) {
-  return (
-    <div className={`rounded-xl border-l-[3px] bg-surface px-5 py-[22px] shadow-card ${STAT_BORDER[color]} ${className}`}>
+/** `to` torna o card inteiro um link (com o mesmo efeito de elevação dos ModuleCard) */
+export function StatCard({ value, label, color, className = "", to }: { value: ReactNode; label: string; color: keyof typeof STAT_BORDER; className?: string; to?: string }) {
+  const cls = `rounded-xl border-l-[3px] bg-surface px-5 py-[22px] shadow-card ${STAT_BORDER[color]} ${className}`;
+  const corpo = (
+    <>
       <div className="text-[26px] leading-[1.1] font-extrabold text-title">{value}</div>
       <div className="mt-1.5 text-[11px] font-semibold tracking-[0.03em] text-muted uppercase">{label}</div>
-    </div>
+    </>
+  );
+  return to ? (
+    <Link href={to} className={`${cls} block transition hover:-translate-y-0.5 hover:shadow-lift`}>
+      {corpo}
+    </Link>
+  ) : (
+    <div className={cls}>{corpo}</div>
   );
 }
 
