@@ -48,7 +48,11 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
       const v = sp.get(k);
       if (v) f[k] = v;
     }
-    for (const [k, v] of Object.entries(selects)) if (v) f[k] = v;
+    // escolher "todos" num select tira o filtro, mesmo que ele tenha vindo da URL (?status=1)
+    for (const [k, v] of Object.entries(selects)) {
+      if (v) f[k] = v;
+      else delete f[k];
+    }
     return f;
   }, [cfg, sp, selects]);
 
