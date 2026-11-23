@@ -2,7 +2,7 @@ import { andarTxt, fmtArea, fmtDate } from '@/lib/format';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { imovelApi, loadBlocoOptions } from '@/services/moradorService';
-import { idFmt, ativoTxt, vazio, sv } from './shared';
+import { idFmt, ativoTxt, vazio, sv, loadStatusOptions } from './shared';
 
 // ---------------------------------------------------------------- Imóveis
 export const imovelCfg: ResourceConfig = {
@@ -35,8 +35,11 @@ export const imovelCfg: ResourceConfig = {
     { label: 'Coberturas', filters: { tipo: 'COBERTURA' } },
   ],
   searchable: false,
-  urlFilters: ['blocoId'],
-  selectFilters: [{ param: 'blocoId', label: 'Bloco', load: loadBlocoOptions }],
+  urlFilters: ['blocoId', 'status'],
+  selectFilters: [
+    { param: 'blocoId', label: 'Bloco', load: loadBlocoOptions },
+    { param: 'status', label: 'Status', load: loadStatusOptions },
+  ],
   fields: [
     { name: 'blocoId', label: 'Bloco', col: 'bloco_id (FK)', type: 'select', required: true, loadOptions: loadBlocoOptions },
     { name: 'imovelNumero', label: 'Número', col: 'imovel_numero', type: 'text', required: true, maxLength: 20, half: true, placeholder: 'Ex.: 101' },

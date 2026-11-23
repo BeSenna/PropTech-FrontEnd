@@ -4,7 +4,7 @@ import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { gruposDeImoveis } from '@/lib/relacao';
 import { blocoLetra, imovelRotulo, moradorApi, vinculosPorMorador } from '@/services/moradorService';
-import { idFmt, ativoTxt, vazio, sv, quem } from './shared';
+import { idFmt, ativoTxt, vazio, sv, quem, loadStatusOptions } from './shared';
 
 // ---------------------------------------------------------------- Moradores
 // uma linha por imóvel; sem relação mostra "—"
@@ -67,6 +67,8 @@ export const moradorCfg: ResourceConfig = {
   ],
   localFilterKeys: ['relacao'],
   localFilter: (r, k, v) => k !== 'relacao' || (r._vinculos ?? []).some((x: Rec) => x.moradorImovelTipoRelacao === v && x.estado !== 'ENCERRADO'),
+  urlFilters: ['status'],
+  selectFilters: [{ param: 'status', label: 'Status', load: loadStatusOptions }],
   searchable: true,
   searchPlaceholder: 'Buscar por nome, CPF ou e-mail...',
   fields: [
