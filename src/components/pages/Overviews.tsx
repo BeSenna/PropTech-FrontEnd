@@ -22,10 +22,10 @@ function StatsMoradores() {
     <>
       {erro && <ErrorBox>{erro}</ErrorBox>}
       <StatGrid>
-        <StatCard value={s?.[0] ?? "—"} label="Blocos cadastrados" color="navy" />
-        <StatCard value={s?.[1] ?? "—"} label="Imóveis ativos" color="green" />
-        <StatCard value={s?.[2] ?? "—"} label="Moradores ativos" color="amber" />
-        <StatCard value={s?.[3] ?? "—"} label="Vínculos registrados" color="pink" />
+        <StatCard value={s?.[0] ?? "—"} label="Blocos cadastrados" color="navy" to="/blocos" />
+        <StatCard value={s?.[1] ?? "—"} label="Imóveis ativos" color="green" to="/imoveis?status=1" />
+        <StatCard value={s?.[2] ?? "—"} label="Moradores ativos" color="amber" to="/moradores?status=1" />
+        <StatCard value={s?.[3] ?? "—"} label="Vínculos registrados" color="pink" to="/vinculos" />
       </StatGrid>
     </>
   );
