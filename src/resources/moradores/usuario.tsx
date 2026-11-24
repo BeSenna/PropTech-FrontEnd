@@ -1,4 +1,5 @@
 import { fmtDate, fmtDateTime } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { loadRelacaoSemContaOptions, trocarSenha, usuarioApi } from '@/services/moradorService';
@@ -69,7 +70,7 @@ export const usuarioCfg: ResourceConfig = {
     if (mode === 'edit' && v.novaSenha) await trocarSenha(saved.usuarioId, v.novaSenha);
   },
   rowTitle: (r) => r.usuarioLogin,
-  idLabel: (r) => `Código ${idFmt(r.usuarioId)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.usuarioId)}`,
   hasDetail: false,
   statusOf: (r) => r.usuarioStatus,
   inactivate: { label: 'Desativar', confirm: 'O acesso será revogado imediatamente (inclusive tokens já emitidos).' },

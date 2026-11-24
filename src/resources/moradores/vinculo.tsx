@@ -1,4 +1,5 @@
 import { fmtDate, toDateInput, validarDataBr } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { EncerrarButton } from '@/components/EncerrarButton';
@@ -29,7 +30,7 @@ export const vinculoCfg: ResourceConfig = {
   adapter: vinculoApi,
   columns: [
     { key: 'morador', label: 'Morador', render: (r) => quem(r.morador?.moradorNome ?? `#${r.moradorId}`), sortValue: sv((r) => r.morador?.moradorNome ?? '') },
-    { key: 'imovel', label: 'Imóvel', render: (r) => `Apto ${r.imovel?.imovelNumero ?? r.imovelId}` },
+    { key: 'imovel', label: 'Imóvel', render: (r) => `${t('Apto')} ${r.imovel?.imovelNumero ?? r.imovelId}` },
     { key: 'bloco', label: 'Bloco', render: (r) => blocoLetra(r._bloco) },
     { key: 'tipo', label: 'Tipo de relação', render: (r) => <Badge>{r.moradorImovelTipoRelacao}</Badge>, sortValue: sv((r) => r.moradorImovelTipoRelacao) },
     { key: 'inicio', label: 'Início', render: (r) => fmtDate(r.moradorImovelDataInicio), sortValue: sv((r) => r.moradorImovelDataInicio) },
@@ -124,21 +125,21 @@ export const vinculoCfg: ResourceConfig = {
       try {
         await criarUsuario({ usuarioLogin: String(v._login).trim(), senha: v._senha, usuarioPerfil: 'MORADOR', moradorImovelId: saved.moradorImovelId });
       } catch (e) {
-        erros.push(`login não criado (${(e as Error).message})`);
+        erros.push(t('login não criado ({erro})', { erro: (e as Error).message }));
       }
     }
     for (const tipo of tiposDaOpcao(String(v._opcao)).filter((t) => t !== saved.moradorImovelTipoRelacao)) {
       try {
         await vinculoApi.create(corpoCriacao(v, tipo));
       } catch (e) {
-        erros.push(`relação de ${rotuloTipo(tipo)} não criada (${(e as Error).message})`);
+        erros.push(t('relação de {tipo} não criada ({erro})', { tipo: rotuloTipo(tipo), erro: (e as Error).message }));
       }
     }
     limparCache();
     if (erros.length) throw new Error(erros.join('; '));
   },
-  rowTitle: (r) => `${r.morador?.moradorNome ?? 'Morador'} · ${r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : `Imóvel #${r.imovelId}`}`,
-  idLabel: (r) => `Código ${idFmt(r.moradorImovelId)}`,
+  rowTitle: (r) => `${r.morador?.moradorNome ?? t('Morador')} · ${r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : t('Imóvel #{id}', { id: r.imovelId })}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.moradorImovelId)}`,
   hasDetail: true,
   hero: {
     kind: 'RELAÇÃO',
@@ -159,8 +160,8 @@ export const vinculoCfg: ResourceConfig = {
   related: (r) => ({
     title: 'Navegação',
     items: [
-      { icon: '🧍', title: r.morador?.moradorNome ?? 'Morador', sub: 'Abrir perfil do morador', to: `/moradores/${r.moradorId}` },
-      { icon: '🏠', title: r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : 'Imóvel', sub: 'Abrir imóvel', to: `/imoveis/${r.imovelId}` },
+      { icon: '🧍', title: r.morador?.moradorNome ?? t('Morador'), sub: t('Abrir perfil do morador'), to: `/moradores/${r.moradorId}` },
+      { icon: '🏠', title: r.imovel ? imovelRotulo(r.imovel, r.imovel.bloco?.blocoNome) : t('Imóvel'), sub: t('Abrir imóvel'), to: `/imoveis/${r.imovelId}` },
     ],
   }),
   extraDetail: (r, reload) => <EncerrarButton row={r} reload={reload} />,

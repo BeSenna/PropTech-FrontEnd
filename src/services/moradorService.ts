@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 // Adaptadores do MS Moradores (API real) + consultas auxiliares usadas em selects e listagens.
 import { http, type Servico } from '@/services/http';
 import type { Adapter, ListParams, Option, Paged, Rec } from '@/models/types';
@@ -33,7 +34,7 @@ export const trocarSenha = (id: number, novaSenha: string) =>
 
 // ---- helpers de rótulo ----
 export const imovelRotulo = (i: Rec, blocoNome?: string) =>
-  `${i.imovelTipo === 'COBERTURA' ? 'Cob.' : 'Apto'} ${i.imovelNumero}${blocoNome ?? i.bloco?.blocoNome ? ` · ${blocoNome ?? i.bloco.blocoNome}` : ''}`;
+  `${i.imovelTipo === 'COBERTURA' ? t('Cob.') : t('Apto')} ${i.imovelNumero}${blocoNome ?? i.bloco?.blocoNome ? ` · ${blocoNome ?? i.bloco.blocoNome}` : ''}`;
 
 export const blocoLetra = (nome?: string) => (nome ?? '').replace(/^bloco\s+/i, '') || '—';
 

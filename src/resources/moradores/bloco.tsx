@@ -1,4 +1,5 @@
 import { andarTxt } from '@/lib/format';
+import { t } from '@/i18n';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { blocoApi } from '@/services/moradorService';
@@ -41,13 +42,13 @@ export const blocoCfg: ResourceConfig = {
     blocoStatus: v.blocoStatus,
   }),
   rowTitle: (r) => r.blocoNome,
-  idLabel: (r) => `Código ${idFmt(r.blocoId)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.blocoId)}`,
   hasDetail: true,
   hero: {
     kind: 'BLOCO',
     color: 'navy',
     badges: (r) => [ativoTxt(r.blocoStatus)],
-    sub: (r) => `${r.imoveis?.length ?? r._count?.imoveis ?? 0} imóveis`,
+    sub: (r) => t('{n} imóveis', { n: r.imoveis?.length ?? r._count?.imoveis ?? 0 }),
   },
   detailTitle: 'Dados do bloco',
   detailRows: (r) => [
@@ -60,8 +61,8 @@ export const blocoCfg: ResourceConfig = {
     title: 'Imóveis do bloco',
     items: (r.imoveis ?? []).slice(0, 8).map((i: Rec) => ({
       icon: '🏠',
-      title: `${i.imovelTipo === 'COBERTURA' ? 'Cob.' : 'Apto'} ${i.imovelNumero}`,
-      sub: `${i.imovelTipo}${andarTxt(i.imovelAndar)}`,
+      title: `${i.imovelTipo === 'COBERTURA' ? t('Cob.') : t('Apto')} ${i.imovelNumero}`,
+      sub: `${t(i.imovelTipo)}${andarTxt(i.imovelAndar)}`,
       to: `/imoveis/${i.imovelId}`,
     })),
     footer: { label: 'Ver todos os imóveis', to: `/imoveis?blocoId=${r.blocoId}` },

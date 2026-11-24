@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/i18n";
 import { ErrorBox, MockTag, ModuleCard, ModuleGrid, PageHeader, SectionLabel, StatCard, StatGrid } from "@/components/ui";
 import { fmtMoney } from "@/lib/format";
 import { useStatsMoradores } from "@/hooks/useStatsMoradores";
@@ -32,9 +33,10 @@ function StatsMoradores() {
 }
 
 export function Dashboard() {
+  const t = useT();
   return (
     <>
-      <PageHeader title="Dashboard — Módulo Moradores" sub="Visão geral do condomínio Jardim das Palmeiras." back={false} />
+      <PageHeader title={t("Dashboard — Módulo Moradores")} sub={t("Visão geral do condomínio Jardim das Palmeiras.")} back={false} />
       <StatsMoradores />
       <SectionLabel>Módulos</SectionLabel>
       {CAD_MODULES}
@@ -49,9 +51,10 @@ export function Dashboard() {
 }
 
 export function CadastrosOverview() {
+  const t = useT();
   return (
     <>
-      <PageHeader title="Cadastros" sub="Visão geral dos cadastros do condomínio Jardim das Palmeiras." />
+      <PageHeader title={t("Cadastros")} sub={t("Visão geral dos cadastros do condomínio Jardim das Palmeiras.")} />
       <StatsMoradores />
       <SectionLabel>Módulos</SectionLabel>
       {CAD_MODULES}
@@ -60,6 +63,7 @@ export function CadastrosOverview() {
 }
 
 export function FinanceiroOverview() {
+  const t = useT();
   const [r, setR] = useState<ResumoFinanceiro | null>(null);
   const [erro, setErro] = useState("");
   useEffect(() => {
@@ -74,7 +78,7 @@ export function FinanceiroOverview() {
   const v = (n?: number) => (n === undefined ? "—" : fmtMoney(n));
   return (
     <>
-      <PageHeader title="Financeiro" sub="Visão geral financeira do condomínio Jardim das Palmeiras." />
+      <PageHeader title={t("Financeiro")} sub={t("Visão geral financeira do condomínio Jardim das Palmeiras.")} />
       {erro && <ErrorBox>{erro}</ErrorBox>}
       {r?.parcial && <ErrorBox>Há mais de 500 registros em algum total; os valores abaixo consideram só os 500 mais recentes de cada tipo.</ErrorBox>}
       <StatGrid>
@@ -96,13 +100,14 @@ export function FinanceiroOverview() {
 }
 
 export function ServicosOverview() {
+  const t = useT();
   return (
     <>
       <PageHeader
-        title="Serviços"
+        title={t("Serviços")}
         sub={
           <>
-            Áreas comuns, reservas, ocorrências e avisos do condomínio.
+            {t("Áreas comuns, reservas, ocorrências e avisos do condomínio.")}
             <MockTag />
           </>
         }
