@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 // Adaptadores do MS Financeiro (API real) + consultas auxiliares usadas em selects, listas e totais.
 import { competenciaTxt, fmtMoney } from '@/lib/format';
 import type { Option, Paged, Rec } from '@/models/types';
@@ -32,13 +33,13 @@ export async function comImovel(rows: Rec[], chave: (r: Rec) => number | undefin
   return rows.map((r) => {
     const id = chave(r);
     const i = id !== undefined ? mapa[id] : undefined;
-    return { ...r, _imovel: i?.rotulo ?? (id !== undefined ? `Imóvel #${id}` : '—'), _bloco: i?.bloco ?? '—' };
+    return { ...r, _imovel: i?.rotulo ?? (id !== undefined ? t('Imóvel #{id}', { id }) : '—'), _bloco: i?.bloco ?? '—' };
   });
 }
 
 // ---------------------------------------------------------------- selects
 export const cobrancaRotulo = (c: Rec, imoveis: Record<number, ImovelInfo>) =>
-  `${imoveis[c.imovelId]?.rotulo ?? `Imóvel #${c.imovelId}`} · ${competenciaTxt(c.competencia)} · ${fmtMoney(c.valor)}`;
+  `${imoveis[c.imovelId]?.rotulo ?? t('Imóvel #{id}', { id: c.imovelId })} · ${competenciaTxt(c.competencia)} · ${fmtMoney(c.valor)}`;
 
 /** Cobranças ativas que ainda aceitam pagamento (não pagas nem canceladas). */
 export const loadCobrancaAbertaOptions = async (): Promise<Option[]> => {

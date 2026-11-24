@@ -1,4 +1,5 @@
 import { competenciaTxt, fmtDate, fmtMoney, toDateInput } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { comImovel, loadCobrancaAbertaOptions, pagamentoApi } from '@/services/financeiroService';
@@ -65,8 +66,8 @@ export const pagamentoCfg: ResourceConfig = {
     status: v.status,
   }),
   newLabel: 'Registrar pagamento',
-  rowTitle: (r) => `Pagamento · ${r._imovel ?? ''}`,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  rowTitle: (r) => `${t('Pagamento')} · ${r._imovel ?? ''}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.status,
   inactivate: { label: 'Cancelar pagamento', confirm: 'O pagamento será cancelado e a cobrança será reavaliada.' },

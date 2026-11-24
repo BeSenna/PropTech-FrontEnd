@@ -1,4 +1,5 @@
 import { competenciaTxt, fmtDate, fmtDateTime, fmtMoney, toDateInput } from '@/lib/format';
+import { t } from '@/i18n';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { cobrancaApi, comImovel } from '@/services/financeiroService';
@@ -80,18 +81,18 @@ export const cobrancaCfg: ResourceConfig = {
     situacao: v.situacao,
     status: v.status,
   }),
-  rowTitle: (r) => `Cobrança · ${r._imovel ?? `Imóvel #${r.imovelId}`}`,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  rowTitle: (r) => `${t('Cobrança')} · ${r._imovel ?? t('Imóvel #{id}', { id: r.imovelId })}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: true,
   hero: {
     kind: 'COBRANÇA',
     color: 'navy',
     badges: (r) => [r.situacao],
-    sub: (r) => `${fmtMoney(r.valor)} · vence em ${fmtDate(r.vencimento)}`,
+    sub: (r) => t('{valor} · vence em {data}', { valor: fmtMoney(r.valor), data: fmtDate(r.vencimento) }),
   },
   detailTitle: 'Dados da cobrança',
   detailRows: (r) => [
-    ['imovel', `${r._imovel ?? `Imóvel #${r.imovelId}`}${r._bloco ? ` · Bloco ${r._bloco}` : ''}`],
+    ['imovel', `${r._imovel ?? t('Imóvel #{id}', { id: r.imovelId })}${r._bloco ? ` · ${t('Bloco')} ${r._bloco}` : ''}`],
     ['cobranca_descricao', vazio(r.descricao)],
     ['cobranca_competencia', fmtDate(r.competencia)],
     ['cobranca_valor', fmtMoney(r.valor)],
@@ -111,8 +112,8 @@ export const cobrancaCfg: ResourceConfig = {
       title: 'Pagamentos vinculados',
       items: pagamentos.map((p) => ({
         icon: '💳',
-        title: `${fmtMoney(p.valorPago)} · ${p.formaPagamento}${p.status === 0 ? ' (cancelado)' : ''}`,
-        sub: `Pago em ${fmtDate(p.dataPagamento)}`,
+        title: `${fmtMoney(p.valorPago)} · ${t(p.formaPagamento)}${p.status === 0 ? ` (${t('cancelado')})` : ''}`,
+        sub: t('Pago em {data}', { data: fmtDate(p.dataPagamento) }),
         to: `/pagamentos/${p.id}/editar`,
       })),
       footer: r.status !== 0 && (r.situacao === 'PENDENTE' || r.situacao === 'VENCIDO') ? { label: '+ Registrar pagamento', to: `/pagamentos/novo?cobrancaId=${r.id}` } : undefined,
