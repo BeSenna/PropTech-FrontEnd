@@ -2,6 +2,8 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { t, useIdioma } from "@/i18n";
+import { msgEtapaExtra, msgSalvo, textoSalvar, tituloDados, tituloForm } from "@/i18n/recurso";
 import { btn, Card, cx, ErrorBox, inputCls, Loading, PageHeader } from "@/components/ui";
 import { CheckboxGroup } from "@/components/CheckboxGroup";
 import { DateInputBR } from "@/components/DateInputBR";
@@ -11,7 +13,6 @@ import { SENHA_DICA, validarSenha } from "@/lib/senha";
 import { motivoOpcaoBloqueada, rotuloTipo, tiposDaOpcao, vigente } from "@/lib/relacao";
 import type { FieldDef, Option, Rec, ResourceConfig } from "@/models/types";
 
-const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 const moneyToNumber = (s: unknown) => Number(String(s).replace(/\./g, "").replace(",", "."));
 // "850.5" (a API manda dinheiro como texto, sem zero à direita) → "850,50"
 const moneyToText = (v: unknown) => {
@@ -26,6 +27,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
   const router = useRouter();
   const toast = useToast();
   const sp = useSearchParams();
+  const idioma = useIdioma();
   const [values, setValues] = useState<Rec | null>(null);
   const [row, setRow] = useState<Rec | null>(null);
   const [opts, setOpts] = useState<Record<string, Option[]>>({});
@@ -77,10 +79,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     return () => {
       vivo = false;
     };
-  }, [cfg]);
+    // idioma: os rótulos das opções (ex.: "Apto 101") são montados na hora, então recarregam ao trocar de idioma
+  }, [cfg, idioma]);
 
   const set = (name: string, v: unknown) => setValues((x) => ({ ...(x as Rec), [name]: v }));
-  const optionsOf = (f: FieldDef) => f.options ?? opts[f.name] ?? [];
+  // opções fixas (ex.: PROPRIETARIO) são texto do sistema e passam pelo dicionário; as de consulta (blocos, moradores) são dados
+  const optionsOf = (f: FieldDef) => (f.options ? f.options.map((x) => ({ ...x, label: t(x.label) })) : (opts[f.name] ?? []));
   // campos condicionais (visibleWhen) só valem enquanto aparecem na tela
   const visiveis = (v: Rec) => campos.filter((f) => !f.visibleWhen || f.visibleWhen(v));
 
@@ -106,7 +110,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     for (const f of visiveis(values)) {
       const v = values[f.name];
       if (f.required && (v === "" || v === undefined || v === null || (Array.isArray(v) && v.length === 0))) {
-        setErro(`Preencha o campo "${f.label}".`);
+        setErro(t('Preencha o campo "{campo}".', { campo: t(f.label) }));
         return;
       }
       const msg = f.validate && v !== "" && v !== undefined && v !== null && !(Array.isArray(v) && v.length === 0) ? f.validate(v) : null;
@@ -116,12 +120,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
       }
     }
     if (cfg.extraFormSection === "vinculoAcesso" && mode === "create" && values._acesso) {
-      if (!String(values._login).trim()) return setErro("Informe o login de acesso.");
+      if (!String(values._login).trim()) return setErro(t("Informe o login de acesso."));
       const msgSenha = validarSenha(String(values._senha));
       if (msgSenha) return setErro(msgSenha);
     }
     if (values.moradorImovelDataFim && values.moradorImovelDataInicio && values.moradorImovelDataFim < values.moradorImovelDataInicio) {
-      return setErro("O fim da relação não pode ser anterior ao início.");
+      return setErro(t("O fim da relação não pode ser anterior ao início."));
     }
     setBusy(true);
     try {
@@ -132,12 +136,12 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
         await cfg.afterSave?.(saved, v, mode);
       } catch (e2) {
         limparCache();
-        toast(`${cap(cfg.singular)} salv${cfg.gender === "m" ? "o" : "a"}, mas a etapa extra falhou: ${(e2 as Error).message}`, "erro");
+        toast(msgEtapaExtra(cfg, (e2 as Error).message), "erro");
         router.push(cfg.path);
         return;
       }
       limparCache();
-      toast(`${cap(cfg.singular)} ${mode === "create" ? "criad" : "atualizad"}${cfg.gender === "m" ? "o" : "a"} com sucesso.`);
+      toast(msgSalvo(cfg, mode));
       router.push(mode === "edit" && cfg.hasDetail ? `${cfg.path}/${id}` : cfg.path);
     } catch (e3) {
       setErro((e3 as Error).message);
@@ -146,7 +150,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
     }
   };
 
-  const titulo = `${mode === "edit" ? "Editar" : cfg.gender === "m" ? "Novo" : "Nova"} ${cap(cfg.singular)}`;
+  const titulo = tituloForm(cfg, mode);
   if (!values) return erro ? <ErrorBox>{erro}</ErrorBox> : <Loading />;
 
   return (
@@ -155,8 +159,8 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
       <form onSubmit={enviar} noValidate>
         <Card className="max-w-[760px]">
           <header className="border-b border-line-soft px-5 py-4">
-            <h3 className="m-0 text-sm font-bold">{cfg.formTitle ?? `Dados d${cfg.gender === "m" ? "o" : "a"} ${cfg.singular}`}</h3>
-            {cfg.formSubtitle && <p className="mt-[3px] mb-0 text-xs text-muted">{cfg.formSubtitle}</p>}
+            <h3 className="m-0 text-sm font-bold">{tituloDados(cfg)}</h3>
+            {cfg.formSubtitle && <p className="mt-[3px] mb-0 text-xs text-muted">{t(cfg.formSubtitle)}</p>}
           </header>
           {erro && (
             <div className="mx-[26px] mt-3.5">
@@ -172,10 +176,10 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
           </div>
           <div className="mt-2 flex gap-2.5 border-t border-line-soft px-[26px] pt-[18px] pb-6">
             <button type="button" className={btn("ghost")} onClick={() => router.back()}>
-              Cancelar
+              {t("Cancelar")}
             </button>
             <button type="submit" className={btn("primary")} disabled={busy}>
-              {busy ? "Salvando…" : `Salvar ${cfg.singular}`}
+              {busy ? t("Salvando…") : textoSalvar(cfg)}
             </button>
           </div>
         </Card>
@@ -187,6 +191,7 @@ export default function ResourceForm({ cfg, mode, id }: { cfg: ResourceConfig; m
 // Avisos e acesso da tela de relação (morador ↔ imóvel). No cadastro, olha o que o morador já tem:
 // as relações dele neste imóvel (alimentam o bloqueio de combinações) e se ele já tem login (a nova relação o herda).
 function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values: Rec; set: (name: string, v: unknown) => void }) {
+  useIdioma();
   const moradorId = String(values.moradorId ?? "");
   const imovelId = String(values.imovelId ?? "");
   const [rels, setRels] = useState<Rec[]>([]);
@@ -246,42 +251,42 @@ function VinculoExtras({ mode, values, set }: { mode: "create" | "edit"; values:
     <>
       {mode === "create" && vigentes.length > 0 && (
         <div role="status" className="col-span-full rounded-[10px] border border-warn-fg/30 bg-warn-bg px-4 py-3 text-[11.5px] text-warn-fg">
-          Este morador já tem neste imóvel: <strong>{vigentes.map((x) => rotuloTipo(String(x.moradorImovelTipoRelacao))).join(" e ")}</strong>. No mesmo imóvel só é permitido somar Proprietário + Morador.
+          {t("Este morador já tem neste imóvel:")} <strong>{vigentes.map((x) => rotuloTipo(String(x.moradorImovelTipoRelacao))).join(` ${t("e")} `)}</strong>. {t("No mesmo imóvel só é permitido somar Proprietário + Morador.")}
         </div>
       )}
       <div className="col-span-full grid gap-3 rounded-[10px] border border-dashed border-side-muted bg-subtle px-4 py-3.5">
-        <div className="text-[11.5px] font-bold">Acesso ao sistema</div>
+        <div className="text-[11.5px] font-bold">{t("Acesso ao sistema")}</div>
         {mode === "edit" ? (
           <div className="text-[11px] text-muted">
-            {values._usuarioId ? `Esta relação já tem acesso (conta #${values._usuarioId}). O login é da pessoa: vale para todas as relações dela. Gerencie a conta em Usuários.` : "Esta relação não tem acesso ao Portal do Morador. Para dar acesso, vá em Usuários → Novo, escolha o perfil MORADOR e selecione esta relação."}
+            {values._usuarioId ? t("Esta relação já tem acesso (conta #{id}). O login é da pessoa: vale para todas as relações dela. Gerencie a conta em Usuários.", { id: String(values._usuarioId) }) : t("Esta relação não tem acesso ao Portal do Morador. Para dar acesso, vá em Usuários → Novo, escolha o perfil MORADOR e selecione esta relação.")}
           </div>
         ) : conta ? (
           <div className="text-[11px] text-muted">
-            Este morador já tem acesso ao Portal do Morador (login <strong>{conta}</strong>). {nTipos > 1 ? "As novas relações usam" : "A nova relação usa"} esse mesmo login.
+            {t("Este morador já tem acesso ao Portal do Morador (login")} <strong>{conta}</strong>). {nTipos > 1 ? t("As novas relações usam esse mesmo login.") : t("A nova relação usa esse mesmo login.")}
           </div>
         ) : (
           <>
-            <Toggle title="Conceder acesso ao Portal do Morador" hint={nTipos > 1 ? "Cria uma conta de login compartilhada pelas relações cadastradas agora" : "Cria uma conta de login vinculada a esta relação"} on={!!values._acesso} onChange={() => set("_acesso", !values._acesso)} wide />
+            <Toggle title={t("Conceder acesso ao Portal do Morador")} hint={nTipos > 1 ? t("Cria uma conta de login compartilhada pelas relações cadastradas agora") : t("Cria uma conta de login vinculada a esta relação")} on={!!values._acesso} onChange={() => set("_acesso", !values._acesso)} wide />
             {values._acesso && (
               <div className="grid grid-cols-1 gap-3 min-[820px]:grid-cols-2">
                 <div className="flex flex-col gap-[7px]">
                   <label htmlFor="f_login" className={labelCls}>
-                    Login
+                    {t("Login")}
                   </label>
-                  <input id="f_login" className={inputCls} value={values._login} maxLength={100} onChange={(e) => set("_login", e.target.value)} placeholder="seu.login" autoComplete="off" />
+                  <input id="f_login" className={inputCls} value={values._login} maxLength={100} onChange={(e) => set("_login", e.target.value)} placeholder={t("seu.login")} autoComplete="off" />
                 </div>
                 <div className="flex flex-col gap-[7px]">
                   <label htmlFor="f_senha" className={labelCls}>
-                    Senha inicial
+                    {t("Senha inicial")}
                   </label>
                   <input id="f_senha" className={inputCls} type="password" value={values._senha} onChange={(e) => set("_senha", e.target.value)} autoComplete="new-password" aria-describedby="f_senha_dica" />
                   <div id="f_senha_dica" className="text-[11px] text-muted">
-                    {SENHA_DICA}
+                    {t(SENHA_DICA)}
                   </div>
                 </div>
               </div>
             )}
-            <div className="text-[11px] text-muted">O acesso é da pessoa: as próximas relações deste morador usam o mesmo login.</div>
+            <div className="text-[11px] text-muted">{t("O acesso é da pessoa: as próximas relações deste morador usam o mesmo login.")}</div>
           </>
         )}
       </div>
@@ -309,11 +314,12 @@ function Toggle({ title, hint, on, onChange, wide }: { title?: string; hint?: st
 }
 
 function Field({ f, value, values, options, onChange }: { f: FieldDef; value: unknown; values: Rec; options: Option[]; onChange: (v: unknown) => void }) {
+  useIdioma();
   const id = `f_${f.name}`;
   const grupo = f.type === "radio" || f.type === "checkbox-group" || f.type === "toggle";
   const label = (
     <>
-      {f.label}
+      {t(f.label)}
       {f.required ? " *" : ""}
     </>
   );
@@ -327,13 +333,13 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
         </label>
       )}
       {children}
-      {f.fkNote && <div className="text-[11px] text-muted">{f.fkNote}</div>}
+      {f.fkNote && <div className="text-[11px] text-muted">{t(f.fkNote)}</div>}
     </div>
   );
 
   switch (f.type) {
     case "toggle":
-      return wrap(<Toggle title={f.toggleTitle} hint={f.toggleHint} on={value === 1} onChange={() => onChange(value === 1 ? 0 : 1)} />);
+      return wrap(<Toggle title={f.toggleTitle && t(f.toggleTitle)} hint={f.toggleHint && t(f.toggleHint)} on={value === 1} onChange={() => onChange(value === 1 ? 0 : 1)} />);
     case "radio":
       return wrap(
         <div className="flex flex-wrap gap-2" role="radiogroup">
@@ -373,7 +379,7 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
     case "select":
       return wrap(
         <select id={id} className={inputCls} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}>
-          <option value="">Selecione…</option>
+          <option value="">{t("Selecione…")}</option>
           {options.map((o) => (
             <option key={String(o.value)} value={String(o.value)}>
               {o.label}
@@ -384,7 +390,7 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
     case "data-br":
       return wrap(<DateInputBR id={id} value={String(value ?? "")} onChange={onChange} placeholder={f.placeholder} />);
     case "textarea":
-      return wrap(<textarea id={id} className={cx(inputCls, "min-h-[84px] resize-y")} value={String(value ?? "")} placeholder={f.placeholder} onChange={(e) => onChange(e.target.value)} />);
+      return wrap(<textarea id={id} className={cx(inputCls, "min-h-[84px] resize-y")} value={String(value ?? "")} placeholder={f.placeholder && t(f.placeholder)} onChange={(e) => onChange(e.target.value)} />);
     default: {
       const htmlType = f.type === "money" ? "text" : f.type;
       return wrap(
@@ -394,7 +400,7 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
           type={htmlType}
           inputMode={f.type === "money" ? "decimal" : undefined}
           value={String(value ?? "")}
-          placeholder={f.placeholder}
+          placeholder={f.placeholder && t(f.placeholder)}
           maxLength={f.maxLength}
           min={f.min}
           step={f.step}

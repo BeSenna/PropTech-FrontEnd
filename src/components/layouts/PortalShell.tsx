@@ -4,7 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { t, useT } from "@/i18n";
 import { ErrorBox, Loading, cx } from "@/components/ui";
 import { iniciais } from "@/lib/format";
 import type { Rec } from "@/models/types";
@@ -29,7 +31,7 @@ export const usePortal = () => {
 };
 
 const NAV = [
-  { to: "/portal", label: "Início", exact: true },
+  { to: "/portal", label: "Início|menu", exact: true },
   { to: "/portal/imovel", label: "Meu Imóvel" },
   { to: "/portal/cobrancas", label: "Financeiro" },
   { to: "/portal/reservas", label: "Reservas" },
@@ -39,6 +41,7 @@ const NAV = [
 
 export function PortalShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAuth();
+  useT();
   const pathname = usePathname();
   const [ctx, setCtx] = useState<PortalCtx | null>(null);
   const [erro, setErro] = useState("");
@@ -47,7 +50,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
     let vivo = true;
     (async () => {
       if (!user?.moradorId) {
-        setErro("Esta conta ainda não está vinculada a um morador. Peça ao síndico para criar o acesso a partir de uma relação.");
+        setErro("Esta conta ainda não está vinculada a um morador. Peça ao síndico para criar o acesso a partir de uma relação."); // traduzida na exibição (ErrorBox)
         return;
       }
       try {
@@ -77,16 +80,17 @@ export function PortalShell({ children }: { children: ReactNode }) {
             <div className="grid size-8 place-items-center rounded-[9px] bg-accent text-[13px] font-extrabold text-on-accent">PT</div>
             <strong className="text-sm text-white">PropTech</strong>
           </Link>
-          <nav className="flex flex-1 gap-4 min-[820px]:gap-[26px]" aria-label="Portal do morador">
+          <nav className="flex flex-1 gap-4 min-[820px]:gap-[26px]" aria-label={t("Portal do morador")}>
             {NAV.map((n) => {
               const ativo = n.exact ? pathname === n.to : pathname === n.to || pathname.startsWith(`${n.to}/`);
               return (
                 <Link key={n.to} href={n.to} className={cx("border-b-2 py-3 text-[13.5px] whitespace-nowrap min-[820px]:py-1.5", ativo ? "border-accent font-bold text-white" : "border-transparent font-medium text-side")}>
-                  {n.label}
+                  {t(n.label)}
                 </Link>
               );
             })}
           </nav>
+          <LanguageToggle variant="escuro" />
           <ThemeToggle variant="escuro" />
           <div className="flex flex-none items-center gap-2.5">
             <div className="grid size-8 place-items-center rounded-lg bg-soft-blue text-[11px] font-extrabold text-title">{iniciais(nome)}</div>
@@ -94,7 +98,7 @@ export function PortalShell({ children }: { children: ReactNode }) {
               <strong className="block text-xs max-[820px]:hidden">{nome}</strong>
               <small>
                 <button onClick={logout} className="border-0 bg-transparent p-0 text-[10.5px] text-side-muted hover:text-white hover:underline max-[819px]:-mx-2 max-[819px]:px-2 max-[819px]:py-3 max-[819px]:text-xs">
-                  Sair
+                  {t("Sair")}
                 </button>
               </small>
             </div>

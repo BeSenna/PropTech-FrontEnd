@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useT } from '@/i18n';
 import { brToIso, isoToBr, maskDataBr } from '@/lib/format';
 import { inputCls } from './ui';
 
@@ -9,6 +10,7 @@ const ISO = /^\d{4}-\d{2}-\d{2}/;
 // Campo de data no padrão brasileiro. `value` é ISO (AAAA-MM-DD) quando a data é válida; enquanto o texto está
 // incompleto ou inválido, `value` leva o próprio texto digitado (e o `validate` do campo recusa o envio).
 export function DateInputBR({ id, value, onChange, className, placeholder = 'DD/MM/AAAA' }: { id?: string; value: string; onChange: (v: string) => void; className?: string; placeholder?: string }) {
+  const t = useT();
   const [txt, setTxt] = useState(() => (ISO.test(value) ? isoToBr(value) : value));
 
   // Valor trocado de fora (carregar edição, limpar formulário): reflete no texto.
@@ -29,7 +31,7 @@ export function DateInputBR({ id, value, onChange, className, placeholder = 'DD/
       inputMode="numeric"
       autoComplete="off"
       maxLength={10}
-      placeholder={placeholder}
+      placeholder={t(placeholder)}
       value={txt}
       onChange={(e) => {
         const m = maskDataBr(e.target.value);

@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t, useIdioma } from "@/i18n";
+import { textoNovo } from "@/i18n/recurso";
 import { btn, Card, cx, Empty, ErrorBox, inputAutoCls, Loading, MockTag, PageHeader, searchCls } from "@/components/ui";
 import type { Option, Rec, ResourceConfig } from "@/models/types";
 
@@ -16,6 +18,7 @@ const PRIMEIRA_COL_TD = "max-[819px]:sticky max-[819px]:left-0 max-[819px]:z-[1]
 export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   const router = useRouter();
   const sp = useSearchParams();
+  const idioma = useIdioma();
   const [chip, setChip] = useState(0);
   // a tabela é mais larga que a tela? (mostra o aviso de rolagem no celular/tablet)
   const tabelaRef = useRef<HTMLDivElement>(null);
@@ -84,7 +87,8 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
     return () => {
       vivo = false;
     };
-  }, [cfg]);
+    // idioma: os rótulos das opções (ex.: "Apto 101") são montados na hora, então recarregam ao trocar de idioma
+  }, [cfg, idioma]);
 
   // Cada consulta recebe um número. Se outra começar antes desta terminar (busca digitada, troca de página),
   // a resposta antiga é descartada e não sobrescreve a mais nova (mesma ideia do "consultaCancelada" da apostila).
@@ -136,9 +140,10 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
     }
   }, [cfg, chips, chip, page, buscaAtiva, baseFilters, local]);
 
+  // idioma: rótulos montados ao carregar (ex.: "Apto 101") são refeitos ao trocar de idioma
   useEffect(() => {
     void carregar();
-  }, [carregar]);
+  }, [carregar, idioma]);
 
   const ordenadas = useMemo(() => {
     if (!sort) return rows;
@@ -167,7 +172,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   }, [ordenadas]);
 
   const paginas = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const novo = cfg.newLabel ?? `${cfg.gender === "m" ? "Novo" : "Nova"} ${cfg.singular}`;
+  const novo = cfg.newLabel ? t(cfg.newLabel) : textoNovo(cfg);
   const abrir = (r: Rec) => router.push(`${cfg.path}/${r[cfg.idKey]}${cfg.hasDetail ? "" : "/editar"}`);
   const pageNumbers = Array.from({ length: paginas }, (_, i) => i + 1).filter((n) => n === 1 || n === paginas || Math.abs(n - page) <= 1);
   const pagBtn = "h-10 min-w-10 rounded-[7px] border text-[11.5px] font-semibold disabled:cursor-default disabled:opacity-40 min-[820px]:h-7 min-[820px]:min-w-7";
@@ -175,10 +180,10 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
   return (
     <>
       <PageHeader
-        title={cfg.plural}
+        title={t(cfg.plural)}
         sub={
           <>
-            {total} registro{total === 1 ? "" : "s"}
+            {total === 1 ? t("1 registro") : t("{n} registros", { n: total })}
             {cfg.mockTag && <MockTag />}
             {cfg.listSub && <MockTag blue>{cfg.listSub}</MockTag>}
           </>
@@ -192,20 +197,20 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
 
       <div className="mb-4 flex flex-wrap items-center gap-2.5">
         {cfg.searchable && (
-          <input className={cx(searchCls, "w-[280px] max-w-full bg-surface!")} type="search" placeholder={cfg.searchPlaceholder ?? "Buscar..."} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label="Buscar" />
+          <input className={cx(searchCls, "w-[280px] max-w-full bg-surface!")} type="search" placeholder={t(cfg.searchPlaceholder ?? "Buscar...")} value={busca} onChange={(e) => setBusca(e.target.value)} aria-label={t("Buscar")} />
         )}
         {cfg.selectFilters?.map((s) => (
           <select
             key={s.param}
             className={inputAutoCls}
-            aria-label={s.label}
+            aria-label={t(s.label)}
             value={selects[s.param] ?? sp.get(s.param) ?? ""}
             onChange={(e) => {
               setSelects((x) => ({ ...x, [s.param]: e.target.value }));
               setPage(1);
             }}
           >
-            <option value="">{s.label}: todos</option>
+            <option value="">{t("{label}: todos", { label: t(s.label) })}</option>
             {(selOpts[s.param] ?? []).map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
@@ -224,7 +229,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                 setPage(1);
               }}
             >
-              {c.label}
+              {t(c.label)}
               {counts[i] !== undefined ? ` (${counts[i]})` : ""}
             </button>
           ))}
@@ -239,7 +244,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         ) : (
           <div ref={tabelaRef} className="overflow-x-auto">
             <table className="w-full border-collapse">
-              <caption className="sr-only">Lista de {cfg.plural.toLowerCase()}</caption>
+              <caption className="sr-only">{t("Lista de {nome}", { nome: t(cfg.plural).toLowerCase() })}</caption>
               <thead>
                 <tr>
                   {cfg.columns.map((c, ci) => (
@@ -250,7 +255,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                       className={cx("border-b border-line px-3 py-3.5 text-left text-[10.5px] font-bold tracking-[0.03em] whitespace-nowrap text-muted uppercase select-none min-[820px]:px-[18px]", c.sortValue && "cursor-pointer", ci === 0 && PRIMEIRA_COL_TH)}
                       onClick={() => c.sortValue && setSort((s) => (s?.key === c.key ? { key: c.key, dir: (s.dir * -1) as 1 | -1 } : { key: c.key, dir: 1 }))}
                     >
-                      {c.label}
+                      {t(c.label)}
                       {c.sortValue && <span className="ml-1 text-muted-2">{sort?.key === c.key ? (sort.dir === 1 ? "↑" : "↓") : "⇅"}</span>}
                     </th>
                   ))}
@@ -280,15 +285,15 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
         )}
         {rola && (
           <p className="m-0 border-t border-line-soft px-3 py-2 text-center text-[11px] text-muted min-[820px]:hidden" aria-hidden="true">
-            ← Deslize a tabela para ver as outras colunas →
+            {t("← Deslize a tabela para ver as outras colunas →")}
           </p>
         )}
         <div className="flex items-center justify-between px-3 py-3 text-[11.5px] text-muted min-[820px]:px-[18px]">
           <span>
-            Exibindo {rows.length} de {total}
+            {t("Exibindo {a} de {b}", { a: rows.length, b: total })}
           </span>
           <div className="flex items-center gap-1">
-            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label="Página anterior">
+            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page <= 1} onClick={() => setPage(page - 1)} aria-label={t("Página anterior")}>
               ‹
             </button>
             {pageNumbers.map((n, i) => (
@@ -299,7 +304,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
                 </button>
               </span>
             ))}
-            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label="Próxima página">
+            <button type="button" className={`${pagBtn} border-line bg-surface`} disabled={page >= paginas} onClick={() => setPage(page + 1)} aria-label={t("Próxima página")}>
               ›
             </button>
           </div>

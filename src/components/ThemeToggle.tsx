@@ -1,6 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { useT } from "@/i18n";
 import { cx } from "./ui";
 
 const CHAVE = "proptech-tema";
@@ -15,6 +16,7 @@ const observar = (aviso: () => void) => {
 const escuroAgora = () => document.documentElement.dataset.theme === "dark";
 
 export function ThemeToggle({ variant = "claro", className }: { variant?: "claro" | "escuro"; className?: string }) {
+  const t = useT();
   const escuro = useSyncExternalStore(observar, escuroAgora, () => false);
 
   const alternar = () => {
@@ -31,9 +33,9 @@ export function ThemeToggle({ variant = "claro", className }: { variant?: "claro
     <button
       type="button"
       onClick={alternar}
-      aria-label="Tema escuro"
+      aria-label={t("Tema escuro")}
       aria-pressed={escuro}
-      title={escuro ? "Voltar ao tema claro" : "Ativar tema escuro"}
+      title={escuro ? t("Voltar ao tema claro") : t("Ativar tema escuro")}
       className={cx(
         "grid size-10 flex-none place-items-center rounded-[10px] border text-[13px] min-[820px]:size-9",
         variant === "escuro" ? "border-white/25 bg-white/12 text-white" : "border-line bg-surface",

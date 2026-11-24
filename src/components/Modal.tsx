@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useT } from "@/i18n";
 import { btn } from "./ui";
 
 export function ConfirmModal({
@@ -22,18 +23,19 @@ export function ConfirmModal({
   onCancel: () => void;
   children?: ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="fixed inset-0 z-50 grid place-items-center bg-navy/45 p-4" onClick={onCancel} role="presentation">
-      <div className="w-full max-w-[420px] rounded-[14px] bg-surface p-6 shadow-[0_20px_50px_rgba(0,0,0,0.25)]" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => e.stopPropagation()}>
-        <h3 className="m-0 mb-2 text-base font-extrabold text-title">{title}</h3>
-        {text && <p className="m-0 mb-[18px] text-[13px] text-ink-2">{text}</p>}
+      <div className="w-full max-w-[420px] rounded-[14px] bg-surface p-6 shadow-[0_20px_50px_rgba(0,0,0,0.25)]" role="dialog" aria-modal="true" aria-label={t(title)} onClick={(e) => e.stopPropagation()}>
+        <h3 className="m-0 mb-2 text-base font-extrabold text-title">{t(title)}</h3>
+        {text && <p className="m-0 mb-[18px] text-[13px] text-ink-2">{t(text)}</p>}
         {children}
         <div className="flex justify-end gap-2.5">
           <button type="button" className={btn("ghost")} onClick={onCancel}>
-            Cancelar
+            {t("Cancelar")}
           </button>
           <button type="button" className={btn(danger ? "danger" : "primary")} disabled={busy} onClick={onConfirm}>
-            {busy ? "Aguarde…" : confirmLabel}
+            {busy ? t("Aguarde…") : t(confirmLabel)}
           </button>
         </div>
       </div>

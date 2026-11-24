@@ -3,7 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 import { useAuth } from "@/auth/AuthContext";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useT } from "@/i18n";
 import { btn, ErrorBox, inputCls } from "@/components/ui";
 
 const lbl = "text-[11.5px] font-bold text-ink-2";
@@ -11,6 +13,7 @@ const lbl = "text-[11.5px] font-bold text-ink-2";
 export default function Login() {
   const { user, ready, login } = useAuth();
   const router = useRouter();
+  const t = useT();
   const [usuario, setUsuario] = useState("");
   const [senha, setSenha] = useState("");
   const [erro, setErro] = useState("");
@@ -23,7 +26,7 @@ export default function Login() {
   const enviar = async (e: FormEvent) => {
     e.preventDefault();
     setErro("");
-    if (!usuario.trim() || !senha) return setErro("Informe login e senha.");
+    if (!usuario.trim() || !senha) return setErro(t("Informe login e senha."));
     setBusy(true);
     try {
       await login(usuario.trim(), senha); // o perfil vem da própria conta; o useEffect acima redireciona
@@ -36,7 +39,10 @@ export default function Login() {
 
   return (
     <div className="relative grid min-h-screen place-items-center bg-linear-to-br from-navy via-[#1b2f70] to-primary p-4">
-      <ThemeToggle variant="escuro" className="absolute top-4 right-4" />
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageToggle variant="escuro" />
+        <ThemeToggle variant="escuro" />
+      </div>
       <div className="w-full max-w-[430px] rounded-2xl bg-surface p-8 shadow-[0_24px_60px_rgba(0,0,0,0.28)]">
         <div className="flex items-center gap-2.5 pb-3.5">
           <div className="grid size-[38px] flex-none place-items-center rounded-[9px] bg-accent text-[15px] font-extrabold text-on-accent">PT</div>
@@ -44,31 +50,31 @@ export default function Login() {
             <strong className="block text-sm text-title">PropTech</strong>
           </div>
         </div>
-        <h1 className="m-0 mt-2 text-[22px] font-extrabold text-title">Entrar no PropTech</h1>
+        <h1 className="m-0 mt-2 text-[22px] font-extrabold text-title">{t("Entrar no PropTech")}</h1>
         <p className="mt-1 mb-[18px] text-[12.5px] text-muted"></p>
         {/*<p className="mt-1 mb-[18px] text-[12.5px] text-muted">Use seu login e senha. O sistema abre a área correta para o seu perfil.</p>*/}
         {erro && <ErrorBox>{erro}</ErrorBox>}
         <form onSubmit={enviar} className="grid gap-4">
           <div className="flex flex-col gap-[7px]">
             <label htmlFor="usuario" className={lbl}>
-              Login
+              {t("Login")}
             </label>
-            <input id="usuario" className={inputCls} value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder="seu.login" autoComplete="username" autoFocus />
+            <input id="usuario" className={inputCls} value={usuario} onChange={(e) => setUsuario(e.target.value)} placeholder={t("seu.login")} autoComplete="username" autoFocus />
           </div>
           <div className="flex flex-col gap-[7px]">
             <label htmlFor="senha" className={lbl}>
-              Senha
+              {t("Senha")}
             </label>
             <input id="senha" className={inputCls} type="password" value={senha} onChange={(e) => setSenha(e.target.value)} placeholder="••••••••" autoComplete="current-password" />
           </div>
           <button type="submit" className={`${btn("primary")} justify-center`} disabled={busy}>
-            {busy ? "Entrando…" : "Entrar"}
+            {busy ? t("Entrando…") : t("Entrar")}
           </button>
         </form>
         <p className="mt-[18px] mb-0 text-center text-[11px] text-muted">
-          Acesso exclusivo para moradores cadastrados pelo síndico.
+          {t("Acesso exclusivo para moradores cadastrados pelo síndico.")}
           <br />
-          Dúvidas? Fale com a administração do condomínio.
+          {t("Dúvidas? Fale com a administração do condomínio.")}
         </p>
       </div>
     </div>
