@@ -1,4 +1,5 @@
 import { competenciaTxt, fmtDate } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { boletoApi, comImovel, loadCobrancaSemBoletoOptions } from '@/services/financeiroService';
@@ -51,8 +52,8 @@ export const boletoCfg: ResourceConfig = {
     };
   },
   newLabel: 'Cadastrar boleto',
-  rowTitle: (r) => `Boleto · ${r._imovel ?? ''}`,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  rowTitle: (r) => `${t('Boleto')} · ${r._imovel ?? ''}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.status,
   inactivate: { label: 'Inativar', confirm: 'O boleto ficará inativo.' },

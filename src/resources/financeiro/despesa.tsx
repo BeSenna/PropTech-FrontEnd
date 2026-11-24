@@ -1,4 +1,5 @@
 import { fmtDate, fmtMoney, toDateInput } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { despesaApi } from '@/services/financeiroService';
@@ -39,7 +40,7 @@ export const despesaCfg: ResourceConfig = {
   toForm: (r) => ({ descricao: r.descricao ?? '', fornecedor: r.fornecedor ?? '', valor: r.valor, data: toDateInput(r.data), categoria: r.categoria ?? '', status: r.status }),
   toPayload: (v) => ({ descricao: v.descricao, fornecedor: v.fornecedor, valor: v.valor, data: v.data, categoria: v.categoria, status: v.status }),
   rowTitle: (r) => r.descricao,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.status,
   inactivate: { label: 'Desativar', confirm: 'A despesa deixará de entrar nos totais do painel.' },
