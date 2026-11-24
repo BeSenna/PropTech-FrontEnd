@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { t, useT } from '@/i18n';
 import { ConfirmModal } from './Modal';
 import { btn } from './ui';
 import { useToast } from './Toast';
@@ -15,9 +16,10 @@ export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }
   const [data, setData] = useState(hoje());
   const [busy, setBusy] = useState(false);
   const toast = useToast();
+  useT();
   if (row.moradorImovelStatus !== 1 || row.estado === 'ENCERRADO') return null;
   const confirmar = async () => {
-    const erro = validarDataBr(data) ?? (data < String(row.moradorImovelDataInicio).slice(0, 10) ? 'A data de fim não pode ser anterior ao início do vínculo.' : null);
+    const erro = validarDataBr(data) ?? (data < String(row.moradorImovelDataInicio).slice(0, 10) ? t('A data de fim não pode ser anterior ao início do vínculo.') : null);
     if (erro) {
       toast(erro, 'erro');
       return;
@@ -26,7 +28,7 @@ export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }
     try {
       await encerrarVinculo(row.moradorImovelId, data);
       limparCache();
-      toast('Vínculo encerrado.');
+      toast(t('Vínculo encerrado.'));
       setOpen(false);
       reload();
     } catch (e) {
@@ -38,12 +40,12 @@ export function EncerrarButton({ row, reload }: { row: Rec; reload: () => void }
   return (
     <>
       <button type="button" className={btn('glass')} onClick={() => setOpen(true)}>
-        Encerrar vínculo
+        {t('Encerrar vínculo')}
       </button>
       {open && (
         <ConfirmModal title="Encerrar vínculo" text="Informe a data de fim. Se for futura, o vínculo fica ENCERRANDO até lá." confirmLabel="Encerrar" busy={busy} onConfirm={confirmar} onCancel={() => setOpen(false)}>
           <div className="mb-[18px] flex flex-col gap-[7px]">
-            <label htmlFor="df" className="text-[11.5px] font-bold text-ink-2">Data de fim</label>
+            <label htmlFor="df" className="text-[11.5px] font-bold text-ink-2">{t('Data de fim')}</label>
             <DateInputBR id="df" value={data} onChange={setData} />
           </div>
         </ConfirmModal>

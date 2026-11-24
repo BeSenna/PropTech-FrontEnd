@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 import type { Rec } from '@/models/types';
 
 // Regras de relação morador ↔ imóvel (espelham o MS Moradores).
@@ -9,7 +10,7 @@ export const TIPOS_RELACAO = ['PROPRIETARIO', 'INQUILINO', 'MORADOR', 'TEMPORADA
 // Opção do cadastro que cria as duas relações de uma vez (dono que também mora no imóvel).
 export const OPCAO_PROPRIETARIO_MORADOR = 'PROPRIETARIO+MORADOR';
 export const OPCOES_RELACAO = [...TIPOS_RELACAO, OPCAO_PROPRIETARIO_MORADOR];
-export const rotuloOpcao = (o: string) => o.split('+').join(' + ');
+export const rotuloOpcao = (o: string) => o.split('+').join(' + ');  // o rótulo "A + B" é traduzido na tela (ResourceForm)
 export const tiposDaOpcao = (o: string) => o.split('+').filter(Boolean);
 
 export const ROTULO_TIPO: Record<string, string> = {
@@ -18,7 +19,7 @@ export const ROTULO_TIPO: Record<string, string> = {
   MORADOR: 'Morador',
   TEMPORADA: 'Temporada',
 };
-export const rotuloTipo = (t: string) => ROTULO_TIPO[t] ?? t;
+export const rotuloTipo = (tipo: string) => t(ROTULO_TIPO[tipo] ?? tipo);
 
 export const combinam = (a: string, b: string) => (a === 'PROPRIETARIO' && b === 'MORADOR') || (a === 'MORADOR' && b === 'PROPRIETARIO');
 
@@ -31,12 +32,12 @@ export function motivoTipoBloqueado(tipo: string, marcados: string[], existentes
   const mesmo = existentes.find((e) => e.moradorImovelTipoRelacao === tipo);
   if (mesmo) {
     return vigente(mesmo)
-      ? `Este morador já é ${rotuloTipo(tipo)} deste imóvel.`
-      : `Já existe uma relação de ${rotuloTipo(tipo)} (encerrada ou inativa) neste imóvel. Reabra-a em vez de criar outra.`;
+      ? t('Este morador já é {tipo} deste imóvel.', { tipo: rotuloTipo(tipo) })
+      : t('Já existe uma relação de {tipo} (encerrada ou inativa) neste imóvel. Reabra-a em vez de criar outra.', { tipo: rotuloTipo(tipo) });
   }
   const outros = new Set([...marcados.filter((m) => m !== tipo), ...existentes.filter(vigente).map((e) => String(e.moradorImovelTipoRelacao))]);
   for (const o of outros) {
-    if (!combinam(tipo, o)) return `Não combina com ${rotuloTipo(o)}. No mesmo imóvel só é permitido Proprietário + Morador.`;
+    if (!combinam(tipo, o)) return t('Não combina com {tipo}. No mesmo imóvel só é permitido Proprietário + Morador.', { tipo: rotuloTipo(o) });
   }
   return null;
 }
@@ -44,7 +45,7 @@ export function motivoTipoBloqueado(tipo: string, marcados: string[], existentes
 // Motivo pelo qual a opção do cadastro não está disponível para este morador neste imóvel (ou null).
 export const motivoOpcaoBloqueada = (opcao: string, existentes: Rec[]): string | null =>
   tiposDaOpcao(opcao)
-    .map((t) => motivoTipoBloqueado(t, [], existentes))
+    .map((x) => motivoTipoBloqueado(x, [], existentes))
     .find(Boolean) ?? null;
 
 export interface GrupoImovel {

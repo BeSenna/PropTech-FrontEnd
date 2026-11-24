@@ -249,6 +249,7 @@ src/
     resource/              ResourceList / Form / Detail (genéricos, guiados por configuração)
     pages/                 Login, Overviews
     portal/                telas do Portal do Morador (uma por arquivo)
+  i18n/                    idiomas (pt-BR e inglês): index.ts (t, useT, setIdioma), en.ts (dicionário), recurso.ts
   hooks/                   hooks próprios (useStatsMoradores)
   lib/                     format (CPF, datas, dinheiro), labels, senha (política de senha)
   mock/                    store (localStorage) + dados de demonstração
@@ -289,6 +290,7 @@ src/
 - **Consultas que chegam fora de ordem:** as listas e o detalhe descartam a resposta de uma consulta que já foi substituída por outra (por exemplo, ao digitar rápido na busca). A busca espera 300 ms antes de consultar a API.
 - **Datas:** o "hoje" usado nos formulários é o do fuso do navegador (e não o UTC), para não virar o dia depois das 21h no horário de Brasília.
 - **Fonte:** a Inter vem do Google Fonts; sem internet o navegador usa a fonte do sistema.
+- **Idioma (PT/EN):** o botão **PT | EN** fica no topo (login, painel do síndico e portal). A escolha é guardada no `localStorage` (`proptech-idioma`) e o padrão é português. Sem biblioteca externa: o texto em português é a chave, e `src/i18n/en.ts` guarda a tradução. No código, use `t('Texto em português')` (ou `useT()` em componentes); variáveis entram como `t('{n} moradores', { n })`. Quando a mesma palavra tem sentidos diferentes, use um contexto após a barra (`t('Início|menu')`). Texto sem tradução aparece em português. Mensagens da API são traduzidas por `tApi` quando há correspondência; dados cadastrados (nomes, observações) não são traduzidos. Para um novo idioma, acrescente um dicionário e inclua-o em `src/i18n/index.ts`.
 
 ---
 

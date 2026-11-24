@@ -1,3 +1,4 @@
+import { t, tApi } from "@/i18n";
 // Cliente HTTP dos microsserviços: injeta o JWT (emitido pelo MS Moradores) e padroniza erros do NestJS.
 //
 // As variáveis NEXT_PUBLIC_* são gravadas no build. Exemplos:
@@ -14,7 +15,7 @@ export type Servico = keyof typeof BASES;
 const TOKEN_KEY = "proptech.token";
 /** tempo máximo de espera por uma resposta da API */
 const TIMEOUT_MS = 10_000;
-const MSG_ACESSO_NEGADO = "Acesso negado. Você não tem permissão para esta ação.";
+const MSG_ACESSO_NEGADO = "Acesso negado. Você não tem permissão para esta ação."; // traduzida no uso (t)
 
 export class ApiError extends Error {
   status: number;
@@ -76,9 +77,9 @@ export async function http<T = any>(
     text = await res.text();
   } catch {
     if (controller.signal.aborted) {
-      throw new ApiError(`A API demorou mais de ${TIMEOUT_MS / 1000} s para responder. Tente novamente.`, 0);
+      throw new ApiError(t("A API demorou mais de {s} s para responder. Tente novamente.", { s: TIMEOUT_MS / 1000 }), 0);
     }
-    throw new ApiError(`Não foi possível falar com a API. Verifique se o ${NOMES[servico]} está rodando.`, 0);
+    throw new ApiError(t("Não foi possível falar com a API. Verifique se o {servico} está rodando.", { servico: NOMES[servico] }), 0);
   } finally {
     clearTimeout(timer);
   }
@@ -87,12 +88,12 @@ export async function http<T = any>(
     if (res.status === 401 && token && !path.startsWith("/auth/login")) onUnauthorized?.();
     // 5xx sem corpo JSON = proxy/gateway sem conseguir chegar no microsserviço (ex.: backend desligado)
     if (res.status >= 500 && !data?.message) {
-      throw new ApiError(`API indisponível (erro ${res.status}). Verifique se o ${NOMES[servico]} está no ar.`, res.status);
+      throw new ApiError(t("API indisponível (erro {status}). Verifique se o {servico} está no ar.", { status: res.status, servico: NOMES[servico] }), res.status);
     }
     const m = data?.message;
-    const msg = Array.isArray(m) ? m.join(" · ") : m || `Erro ${res.status}`;
+    const msg = Array.isArray(m) ? m.map((x: string) => tApi(x)).join(" · ") : m ? tApi(String(m)) : t("Erro {status}", { status: res.status });
     // 403 do NestJS vem em inglês ("Forbidden resource"): troca por uma mensagem clara; mensagens próprias da API são mantidas
-    if (res.status === 403 && (!m || m === "Forbidden resource")) throw new ApiError(MSG_ACESSO_NEGADO, 403);
+    if (res.status === 403 && (!m || m === "Forbidden resource")) throw new ApiError(t(MSG_ACESSO_NEGADO), 403);
     throw new ApiError(msg, res.status);
   }
   return data as T;

@@ -1,19 +1,24 @@
+import { ingles, localeAtual, t } from '@/i18n';
+
 export const onlyDigits = (s: string) => (s ?? '').replace(/\D/g, '');
+
+// Em português: DD/MM/AAAA. Em inglês: "Mar 12, 2021" (sem ambiguidade entre dia e mês).
+const DATA_EN: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
 
 export function fmtDate(v?: string | null): string {
   if (!v) return '—';
   const s = String(v);
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
-  if (m) return `${m[3]}/${m[2]}/${m[1]}`;
+  if (m) return ingles() ? new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3])).toLocaleDateString('en-US', DATA_EN) : `${m[3]}/${m[2]}/${m[1]}`;
   const d = new Date(s);
-  return isNaN(d.getTime()) ? s : d.toLocaleDateString('pt-BR');
+  return isNaN(d.getTime()) ? s : d.toLocaleDateString(localeAtual(), ingles() ? DATA_EN : undefined);
 }
 
 export function fmtDateTime(v?: string | null): string {
   if (!v) return '—';
   const d = new Date(v);
   if (isNaN(d.getTime())) return String(v);
-  return `${d.toLocaleDateString('pt-BR')} ${d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
+  return `${d.toLocaleDateString(localeAtual(), ingles() ? DATA_EN : undefined)} ${d.toLocaleTimeString(localeAtual(), { hour: '2-digit', minute: '2-digit' })}`;
 }
 
 export const toDateInput = (v?: string | null) => (v ? String(v).slice(0, 10) : '');
@@ -45,12 +50,12 @@ export function brToIso(s: string): string | null {
 }
 
 // Para o `validate` dos campos 'data-br': o valor é ISO quando a data digitada é válida; senão continua o texto digitado.
-export const validarDataBr = (v: unknown): string | null => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? null : 'Data inválida. Use o formato DD/MM/AAAA.');
+export const validarDataBr = (v: unknown): string | null => (/^\d{4}-\d{2}-\d{2}$/.test(String(v)) ? null : t('Data inválida. Use o formato DD/MM/AAAA.'));
 
 export function fmtMoney(v: unknown): string {
   const n = Number(v);
   if (!isFinite(n)) return '—';
-  return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return n.toLocaleString(localeAtual(), { style: 'currency', currency: 'BRL' });
 }
 
 // Mesma regra do backend: 11 dígitos, não repetidos, com os dois dígitos verificadores corretos.
@@ -75,7 +80,7 @@ export function fmtCpf(v?: string | null): string {
 export function fmtArea(v: unknown): string {
   if (v === null || v === undefined || v === '') return '—';
   const n = Number(v);
-  return isFinite(n) ? `${n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²` : String(v);
+  return isFinite(n) ? `${n.toLocaleString(localeAtual(), { minimumFractionDigits: 2, maximumFractionDigits: 2 })} m²` : String(v);
 }
 
 export const iniciais = (nome?: string) =>
@@ -86,13 +91,18 @@ export const iniciais = (nome?: string) =>
     .map((p) => p[0]!.toUpperCase())
     .join('');
 
-export const andarTxt = (a?: number | null) => (a === null || a === undefined ? '' : ` · ${a}º andar`);
+const ordinalEn = (n: number) => {
+  const r = n % 100;
+  if (r >= 11 && r <= 13) return `${n}th`;
+  return `${n}${({ 1: 'st', 2: 'nd', 3: 'rd' } as Record<number, string>)[n % 10] ?? 'th'}`;
+};
+export const andarTxt = (a?: number | null) => (a === null || a === undefined ? '' : ingles() ? ` · ${ordinalEn(a)} floor` : ` · ${a}º andar`);
 
 export const competenciaTxt = (iso?: string | null) => {
   if (!iso) return '—';
   const m = /^(\d{4})-(\d{2})/.exec(iso);
   if (!m) return String(iso);
-  const nomes = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const nomes = ingles() ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
   return `${nomes[Number(m[2]) - 1]}/${m[1]}`;
 };
 

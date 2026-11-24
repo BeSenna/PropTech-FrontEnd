@@ -1,3 +1,5 @@
+import { t } from "@/i18n";
+
 // Rótulos legíveis para os campos exibidos nas telas de detalhe (a API usa nomes de coluna; o usuário não precisa vê-los).
 const ROTULOS: Record<string, string> = {
   area_comum_capacidade: "Capacidade",
@@ -51,8 +53,8 @@ const ROTULOS: Record<string, string> = {
 
 /** Converte um nome de coluna em texto para o usuário. Sem entrada no mapa: troca "_" por espaço. */
 export function rotulo(k: string): string {
-  if (ROTULOS[k]) return ROTULOS[k];
-  if (!k.includes("_")) return k;
-  const t = k.replace(/_/g, " ");
-  return t.charAt(0).toUpperCase() + t.slice(1);
+  if (ROTULOS[k]) return t(ROTULOS[k]);
+  if (!k.includes("_")) return t(k);
+  const txt = k.replace(/_/g, " ");
+  return txt.charAt(0).toUpperCase() + txt.slice(1);
 }

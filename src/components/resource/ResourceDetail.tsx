@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
+import { t, useIdioma } from "@/i18n";
+import { textoEditar } from "@/i18n/recurso";
 import { Badge, btn, Card, DetailGrid, ErrorBox, Hero, HeroBadges, KV, Loading, PageHeader, RelatedList } from "@/components/ui";
 import { ConfirmModal } from "@/components/Modal";
 import { useToast } from "@/components/Toast";
@@ -10,6 +12,7 @@ import type { Rec, RelatedPanel, ResourceConfig } from "@/models/types";
 
 export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: string }) {
   const toast = useToast();
+  const idioma = useIdioma();
   const [row, setRow] = useState<Rec | null>(null);
   const [rel, setRel] = useState<RelatedPanel | null>(null);
   const [erro, setErro] = useState("");
@@ -40,7 +43,8 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
     return () => {
       vivo = false;
     };
-  }, [carregar]);
+    // idioma: o painel de relacionados é montado em texto ao carregar, então é refeito ao trocar de idioma
+  }, [carregar, idioma]);
 
   if (erro) return <ErrorBox>{erro}</ErrorBox>;
   if (!row) return <Loading />;
@@ -52,7 +56,7 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
     try {
       await cfg.adapter.remove(id);
       limparCache();
-      toast(`${cfg.inactivate.label === "Desativar" ? "Desativado" : "Atualizado"} com sucesso.`);
+      toast(cfg.inactivate.label === "Desativar" ? t("Desativado com sucesso.") : t("Atualizado com sucesso."));
       setConfirmando(false);
       await carregar(() => true);
     } catch (e) {
@@ -69,7 +73,7 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
         sub={cfg.idLabel(row)}
         actions={
           <Link href={`${cfg.path}/${id}/editar`} className={btn("outline")}>
-            Editar
+            {t("Editar")}
           </Link>
         }
       />
@@ -79,23 +83,23 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
         actions={
           <>
             <Link href={`${cfg.path}/${id}/editar`} className={btn("glass")}>
-              Editar {cfg.singular}
+              {textoEditar(cfg)}
             </Link>
             {cfg.detailActions?.(row).map((a) => (
               <Link key={a.label} href={a.to} className={btn("white")}>
-                {a.label}
+                {t(a.label)}
               </Link>
             ))}
             {cfg.extraDetail?.(row, () => void carregar(() => true))}
             {ativo && (
               <button type="button" className={btn("glass")} onClick={() => setConfirmando(true)}>
-                {cfg.inactivate.label}
+                {t(cfg.inactivate.label)}
               </button>
             )}
           </>
         }
       >
-        <small className="text-[10.5px] font-bold tracking-[0.04em] opacity-85">{hero.kind}</small>
+        <small className="text-[10.5px] font-bold tracking-[0.04em] opacity-85">{t(hero.kind)}</small>
         <h2 className="mt-1 mb-2.5 text-[22px] font-extrabold">{cfg.rowTitle(row)}</h2>
         <HeroBadges items={hero.badges(row)} />
         {hero.sub && <div className="mt-2 text-[12.5px] opacity-90">{hero.sub(row)}</div>}
@@ -105,14 +109,14 @@ export default function ResourceDetail({ cfg, id }: { cfg: ResourceConfig; id: s
         <Card title={cfg.detailTitle ?? "Dados"}>
           {cfg.detailRows?.(row).map(([k, v]) => (
             <KV k={k} key={k}>
-              {typeof v === "string" && ["ATIVO", "ATIVA", "INATIVO", "INATIVA"].includes(v) ? <Badge>{v}</Badge> : v}
+              {typeof v === "string" && ["ATIVO", "ATIVA", "INATIVO", "INATIVA"].includes(v) ? <Badge>{v}</Badge> : typeof v === "string" ? t(v) : v}
             </KV>
           ))}
         </Card>
         {rel && <RelatedList title={rel.title} items={rel.items} footer={rel.footer} />}
       </DetailGrid>
 
-      {confirmando && <ConfirmModal title={`${cfg.inactivate.label}?`} text={cfg.inactivate.confirm} confirmLabel={cfg.inactivate.label} danger busy={busy} onConfirm={desativar} onCancel={() => setConfirmando(false)} />}
+      {confirmando && <ConfirmModal title={`${t(cfg.inactivate.label)}?`} text={cfg.inactivate.confirm} confirmLabel={cfg.inactivate.label} danger busy={busy} onConfirm={desativar} onCancel={() => setConfirmando(false)} />}
     </>
   );
 }
