@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
+import { ingles, t, useT } from "@/i18n";
 import { useEffect, useState } from "react";
 import { Badge, btn, Card, DetailGrid, Empty, ErrorBox, Hero, HeroBadges, KV, Loading, PageHeader, RowItem } from "@/components/ui";
 import { usePortal } from "@/components/layouts/PortalShell";
@@ -11,7 +12,9 @@ import { imovelRotulo } from "@/services/moradorService";
 
 const comp = (iso: string) => {
   const t = competenciaTxt(iso);
-  const meses: Record<string, string> = { Jan: "Janeiro", Fev: "Fevereiro", Mar: "Março", Abr: "Abril", Mai: "Maio", Jun: "Junho", Jul: "Julho", Ago: "Agosto", Set: "Setembro", Out: "Outubro", Nov: "Novembro", Dez: "Dezembro" };
+  const meses: Record<string, string> = ingles()
+    ? { Jan: "January", Feb: "February", Mar: "March", Apr: "April", May: "May", Jun: "June", Jul: "July", Aug: "August", Sep: "September", Oct: "October", Nov: "November", Dec: "December" }
+    : { Jan: "Janeiro", Fev: "Fevereiro", Mar: "Março", Abr: "Abril", Mai: "Maio", Jun: "Junho", Jul: "Julho", Ago: "Agosto", Set: "Setembro", Out: "Outubro", Nov: "Novembro", Dez: "Dezembro" };
   const [m, a] = t.split("/");
   return `${meses[m!] ?? m}/${a}`;
 };
@@ -28,11 +31,12 @@ function useRotulosDosImoveis(): (id: number) => string {
     const bloco = v.imovel.bloco?.blocoNome;
     mapa[v.imovelId] = `${imovelRotulo(v.imovel, "").replace(/ · .*$/, "")}${bloco ? `, ${bloco}` : ""}`;
   }
-  return (id) => mapa[id] ?? `Imóvel #${id}`;
+  return (id) => mapa[id] ?? t("Imóvel #{id}", { id });
 }
 
 export function PortalCobrancas() {
   const p = usePortal();
+  useT();
   const rotulo = useRotulosDosImoveis();
   const [cs, setCs] = useState<Rec[] | null>(null);
   const [erro, setErro] = useState("");
@@ -52,7 +56,7 @@ export function PortalCobrancas() {
   const varios = new Set((cs ?? []).map((c) => c.imovelId)).size > 1;
   return (
     <>
-      <PageHeader title="Minhas Cobranças" sub={`Cobranças do seu imóvel · ${p.imovelLabel || "—"}${p.blocoNome ? `, ${p.blocoNome}` : ""}.`} />
+      <PageHeader title={t("Minhas Cobranças")} sub={`${t("Cobranças do seu imóvel")} · ${p.imovelLabel || "—"}${p.blocoNome ? `, ${p.blocoNome}` : ""}.`} />
       {erro ? (
         <ErrorBox>{erro}</ErrorBox>
       ) : cs === null ? (
@@ -67,7 +71,7 @@ export function PortalCobrancas() {
               ico="🧾"
               tint="var(--tint-cyan)"
               title={`${comp(c.competencia)} · ${fmtMoney(c.valor)}`}
-              sub={`${c.situacao === "PAGO" ? "Pago" : c.situacao === "VENCIDO" ? "Venceu" : "Vence"} em ${fmtDate(c.vencimento)}${varios ? ` · ${rotulo(c.imovelId)}` : ""}`}
+              sub={`${t(c.situacao === "PAGO" ? "Pago em {data}" : c.situacao === "VENCIDO" ? "Venceu em {data}" : "Vence em {data}", { data: fmtDate(c.vencimento) })}${varios ? ` · ${rotulo(c.imovelId)}` : ""}`}
               right={<Badge>{c.situacao}</Badge>}
             />
           ))}
@@ -78,6 +82,7 @@ export function PortalCobrancas() {
 }
 
 export function PortalCobranca() {
+  useT();
   const rotulo = useRotulosDosImoveis();
   const { id } = useParams<{ id: string }>();
   const [c, setC] = useState<Rec | null>(null);
@@ -99,18 +104,18 @@ export function PortalCobranca() {
   const pdf = linkSeguro(c.boleto?.urlPdf);
   return (
     <>
-      <PageHeader title={`Cobrança · ${comp(c.competencia)}`} sub={rotulo(c.imovelId)} />
+      <PageHeader title={`${t("Cobrança")} · ${comp(c.competencia)}`} sub={rotulo(c.imovelId)} />
       <Hero
         color="navy"
         actions={
           pdf ? (
             <a className={btn("white")} href={pdf} target="_blank" rel="noopener noreferrer">
-              Baixar boleto (PDF)
+              {t("Baixar boleto (PDF)")}
             </a>
           ) : undefined
         }
       >
-        <small className="text-[10.5px] font-bold tracking-[0.04em] opacity-85">COBRANÇA</small>
+        <small className="text-[10.5px] font-bold tracking-[0.04em] opacity-85">{t("COBRANÇA")}</small>
         <h2 className="mt-1 mb-2.5 text-[22px] font-extrabold">{fmtMoney(c.valor)}</h2>
         <HeroBadges items={[c.situacao]} />
       </Hero>
@@ -120,7 +125,7 @@ export function PortalCobranca() {
             ["Descrição", c.descricao ?? "—"],
             ["Competência", fmtDate(c.competencia)],
             ["Vencimento", fmtDate(c.vencimento)],
-            ["Situação", c.situacao],
+            ["Situação", t(c.situacao)],
           ].map(([k, v]) => (
             <KV k={k} key={k}>
               {v}

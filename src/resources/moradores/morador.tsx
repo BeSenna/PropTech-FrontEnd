@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { t } from '@/i18n';
 import { cpfValido, fmtCpf, fmtDate, fmtDateTime, hoje, onlyDigits, toDateInput, validarDataBr } from '@/lib/format';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
@@ -35,7 +36,7 @@ export const moradorCfg: ResourceConfig = {
     { key: 'moradorCpf', label: 'CPF', render: (r) => fmtCpf(r.moradorCpf) },
     { key: 'contato', label: 'Contato', render: (r) => r.moradorEmail || r.moradorTelefone || '—' },
     // quem tem mais de um imóvel (ou é Proprietário + Morador do mesmo) aparece com uma linha por imóvel
-    { key: 'imovel', label: 'Imóvel', render: (r) => <Linhas itens={gruposDeImoveis(r._vinculos).map((g) => `Apto ${g.imovel?.imovelNumero}`)} /> },
+    { key: 'imovel', label: 'Imóvel', render: (r) => <Linhas itens={gruposDeImoveis(r._vinculos).map((g) => `${t('Apto')} ${g.imovel?.imovelNumero}`)} /> },
     { key: 'bloco', label: 'Bloco', render: (r) => <Linhas itens={gruposDeImoveis(r._vinculos).map((g) => blocoLetra(g.blocoNome))} /> },
     {
       key: 'relacao',
@@ -73,8 +74,8 @@ export const moradorCfg: ResourceConfig = {
   searchPlaceholder: 'Buscar por nome, CPF ou e-mail...',
   fields: [
     { name: 'moradorNome', label: 'Nome completo', col: 'morador_nome', type: 'text', required: true, maxLength: 300 },
-    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00', fkNote: 'Informe um CPF válido (os dígitos verificadores são conferidos).', validate: (v) => (cpfValido(String(v)) ? null : 'CPF inválido. Confira os números digitados.') },
-    { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'data-br', half: true, placeholder: 'DD/MM/AAAA', validate: (v) => validarDataBr(v) ?? (String(v) > hoje() ? 'A data de nascimento não pode ser futura.' : null) },
+    { name: 'moradorCpf', label: 'CPF', col: 'morador_cpf', type: 'text', required: true, half: true, maxLength: 14, placeholder: '000.000.000-00', fkNote: 'Informe um CPF válido (os dígitos verificadores são conferidos).', validate: (v) => (cpfValido(String(v)) ? null : t('CPF inválido. Confira os números digitados.')) },
+    { name: 'moradorDataNascimento', label: 'Nascimento', col: 'morador_data_nascimento', type: 'data-br', half: true, placeholder: 'DD/MM/AAAA', validate: (v) => validarDataBr(v) ?? (String(v) > hoje() ? t('A data de nascimento não pode ser futura.') : null) },
     { name: 'moradorEmail', label: 'E-mail', col: 'morador_email', type: 'text', half: true, maxLength: 150, placeholder: 'nome@email.com' },
     { name: 'moradorTelefone', label: 'Telefone', col: 'morador_telefone', type: 'text', half: true, maxLength: 20, placeholder: '(21) 90000-0000' },
     { name: 'moradorDeficienciaLocomocao', label: 'Necessidade especial', col: 'morador_deficiencia_locomocao', type: 'toggle', toggleTitle: 'Possui deficiência', toggleHint: 'Prioridade em áreas comuns' },
@@ -105,7 +106,7 @@ export const moradorCfg: ResourceConfig = {
     };
   },
   rowTitle: (r) => r.moradorNome,
-  idLabel: (r) => `Código ${idFmt(r.moradorId)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.moradorId)}`,
   hasDetail: true,
   hero: {
     kind: 'MORADOR',
@@ -127,7 +128,7 @@ export const moradorCfg: ResourceConfig = {
     items: (r.moradorImoveis ?? []).map((v: Rec) => ({
       icon: '🏠',
       title: imovelRotulo(v.imovel, v.imovel?.bloco?.blocoNome),
-      sub: `${v.moradorImovelTipoRelacao} · desde ${fmtDate(v.moradorImovelDataInicio)}${v.moradorImovelDataFim ? ` · até ${fmtDate(v.moradorImovelDataFim)}` : ''}`,
+      sub: `${t('{tipo} · desde {data}', { tipo: t(v.moradorImovelTipoRelacao), data: fmtDate(v.moradorImovelDataInicio) })}${v.moradorImovelDataFim ? ` · ${t('até {data}', { data: fmtDate(v.moradorImovelDataFim) })}` : ''}`,
       to: `/vinculos/${v.moradorImovelId}`,
     })),
   }),

@@ -1,4 +1,5 @@
 import { andarTxt, fmtArea, fmtDate } from '@/lib/format';
+import { t } from '@/i18n';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { imovelApi, loadBlocoOptions } from '@/services/moradorService';
@@ -88,8 +89,8 @@ export const imovelCfg: ResourceConfig = {
       ...opt('imovelIptu'),
     };
   },
-  rowTitle: (r) => `${r.imovelTipo === 'COBERTURA' ? 'Cob.' : 'Apto'} ${r.imovelNumero}${r.bloco?.blocoNome ? ` · ${r.bloco.blocoNome}` : ''}`,
-  idLabel: (r) => `Código ${idFmt(r.imovelId)}`,
+  rowTitle: (r) => `${r.imovelTipo === 'COBERTURA' ? t('Cob.') : t('Apto')} ${r.imovelNumero}${r.bloco?.blocoNome ? ` · ${r.bloco.blocoNome}` : ''}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.imovelId)}`,
   hasDetail: true,
   hero: {
     kind: 'IMÓVEL',
@@ -105,7 +106,7 @@ export const imovelCfg: ResourceConfig = {
     ['imovel_area_m2', fmtArea(r.imovelAreaM2)],
     ['imovel_matricula', vazio(r.imovelMatricula)],
     ['imovel_IPTU', vazio(r.imovelIptu)],
-    ['imovel_garagem', r.imovelGaragem === null || r.imovelGaragem === undefined ? '—' : `${r.imovelGaragem} vaga${r.imovelGaragem === 1 ? '' : 's'}`],
+    ['imovel_garagem', r.imovelGaragem === null || r.imovelGaragem === undefined ? '—' : (r.imovelGaragem === 1 ? t('1 vaga') : t('{n} vagas', { n: r.imovelGaragem }))],
     ['imovel_status', r.imovelStatus === 1 ? 'Ativa' : 'Inativa'],
   ],
   related: (r) => ({
@@ -113,7 +114,7 @@ export const imovelCfg: ResourceConfig = {
     items: (r.moradorImoveis ?? []).map((v: Rec) => ({
       icon: '🧍',
       title: v.morador?.moradorNome ?? `Morador #${v.moradorId}`,
-      sub: `${v.moradorImovelTipoRelacao} · desde ${fmtDate(v.moradorImovelDataInicio)}`,
+      sub: t('{tipo} · desde {data}', { tipo: t(v.moradorImovelTipoRelacao), data: fmtDate(v.moradorImovelDataInicio) }),
       to: `/moradores/${v.moradorId}`,
     })),
   }),

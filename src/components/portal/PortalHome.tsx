@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useT } from "@/i18n";
 import { Badge, btn, Card, DetailGrid, Empty, PageHeader, RowItem, StatCard, StatGrid } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { usePortal } from "@/components/layouts/PortalShell";
@@ -9,24 +10,25 @@ import { horario, primeiroNome, minhasReservas, minhasOcorrencias, avisosAtivos 
 
 export function PortalHome() {
   const p = usePortal();
+  const t = useT();
   const reservas = minhasReservas(p.moradorId).filter((r) => r.reserva_status === 1);
   const ocs = minhasOcorrencias(p.moradorId).filter((o) => o.ocorrencia_tipo === "EM_ANDAMENTO");
   const avisos = avisosAtivos();
   const nImoveis = gruposDeImoveis(p.vinculos).length;
-  const subImovel = !p.imovelLabel ? "Sem imóvel vinculado" : `${p.imovelLabel} · ${p.blocoNome}${nImoveis > 1 ? ` e mais ${nImoveis - 1} ${nImoveis - 1 === 1 ? "imóvel" : "imóveis"}` : ""}`;
+  const subImovel = !p.imovelLabel ? t("Sem imóvel vinculado") : `${p.imovelLabel} · ${p.blocoNome}${nImoveis > 1 ? ` ${t(nImoveis - 1 === 1 ? "e mais 1 imóvel" : "e mais {n} imóveis", { n: nImoveis - 1 })}` : ""}`;
   return (
     <>
       <PageHeader
         back={false}
-        title={`Olá, ${primeiroNome(p.nome)} 👋`}
-        sub={`${subImovel} — bem-vindo(a) ao seu portal.`}
+        title={`${t("Olá,")} ${primeiroNome(p.nome)} 👋`}
+        sub={`${subImovel} — ${t("bem-vindo(a) ao seu portal.")}`}
         actions={
           <>
             <Link className={btn("outline")} href="/portal/reservas/nova">
-              + Nova reserva
+              {t("+ Nova reserva")}
             </Link>
             <Link className={btn("amber")} href="/portal/ocorrencias/nova">
-              + Abrir ocorrência
+              {t("+ Abrir ocorrência")}
             </Link>
           </>
         }
