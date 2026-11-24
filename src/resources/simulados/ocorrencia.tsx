@@ -1,4 +1,5 @@
 import { fmtDate, fmtDateTime } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { loadMoradorOptions } from '@/services/moradorService';
@@ -41,9 +42,9 @@ export const ocorrenciaCfg: ResourceConfig = {
     ...(mode === 'create' ? { ocorrencia_data_ocorrencia: agora() } : {}),
   }),
   rowTitle: (r) => r.ocorrencia_titulo,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: true,
-  hero: { kind: 'OCORRÊNCIA', color: 'amber', badges: (r) => [r.ocorrencia_tipo], sub: (r) => `Reportada por ${r.morador_nome}` },
+  hero: { kind: 'OCORRÊNCIA', color: 'amber', badges: (r) => [r.ocorrencia_tipo], sub: (r) => t('Reportada por {nome}', { nome: r.morador_nome }) },
   detailTitle: 'Dados da ocorrência',
   detailRows: (r) => [
     ['ocorrencia_morador_id', r.morador_nome],
@@ -58,7 +59,7 @@ export const ocorrenciaCfg: ResourceConfig = {
     items: manutencaoStore
       .all()
       .filter((m) => m.ocorrencia_id === r.id)
-      .map((m) => ({ icon: '🔧', title: m.manutencao_descricao, sub: `${m.manutencao_tipo} · ${m.manutencao_responsavel}`, to: `/manutencoes/${m.id}/editar` })),
+      .map((m) => ({ icon: '🔧', title: m.manutencao_descricao, sub: `${t(m.manutencao_tipo)} · ${m.manutencao_responsavel}`, to: `/manutencoes/${m.id}/editar` })),
   }),
   detailActions: (r) => [{ label: '+ Registrar manutenção', to: `/manutencoes/novo?ocorrencia_id=${r.id}`, primary: true }],
   statusOf: (r) => r.ocorrencia_status,

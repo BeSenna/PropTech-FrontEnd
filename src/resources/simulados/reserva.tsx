@@ -1,4 +1,5 @@
 import { fmtDate } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { loadMoradorOptions } from '@/services/moradorService';
@@ -46,7 +47,7 @@ export const reservaCfg: ResourceConfig = {
     ...(v.reserva_morador_id__label ? { morador_nome: v.reserva_morador_id__label } : {}),
   }),
   rowTitle: (r) => `${r.area_comum_label} · ${fmtDate(r.reserva_data_reserva)}`,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.reserva_status,
   inactivate: { label: 'Cancelar reserva', confirm: 'A reserva ficará inativa e liberará o horário.' },

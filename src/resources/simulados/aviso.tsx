@@ -1,4 +1,5 @@
 import { fmtDateTime } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { avisoStore } from '@/mock/data';
@@ -35,7 +36,7 @@ export const avisoCfg: ResourceConfig = {
   toForm: (r) => ({ ...r, avisos_data_expiracao: String(r.avisos_data_expiracao ?? '').slice(0, 10) }),
   toPayload: (v, mode) => ({ ...v, ...(mode === 'create' ? { avisos_data_publicacao: agora() } : {}) }),
   rowTitle: (r) => r.avisos_titulo,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.avisos_status,
   inactivate: { label: 'Desativar', confirm: 'O aviso deixará de aparecer no mural.' },
