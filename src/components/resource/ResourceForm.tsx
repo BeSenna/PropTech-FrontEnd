@@ -382,7 +382,7 @@ function Field({ f, value, values, options, onChange }: { f: FieldDef; value: un
           <option value="">{t("Selecione…")}</option>
           {options.map((o) => (
             <option key={String(o.value)} value={String(o.value)}>
-              {o.label}
+              {t(o.label)}
             </option>
           ))}
         </select>,
