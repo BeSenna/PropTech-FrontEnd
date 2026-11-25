@@ -213,7 +213,7 @@ export default function ResourceList({ cfg }: { cfg: ResourceConfig }) {
             <option value="">{t("{label}: todos", { label: t(s.label) })}</option>
             {(selOpts[s.param] ?? []).map((o) => (
               <option key={o.value} value={o.value}>
-                {o.label}
+                {t(o.label)}
               </option>
             ))}
           </select>
