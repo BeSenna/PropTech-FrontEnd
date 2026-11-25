@@ -1,3 +1,4 @@
+import { t } from '@/i18n';
 // Armazenamento simulado (localStorage) para os módulos Financeiro e Serviços,
 // cujos microsserviços ainda não existem. Mesma interface (Adapter) da API real,
 // então trocar por chamadas HTTP depois não muda nenhuma tela.
@@ -74,7 +75,7 @@ export function createMock(nome: string, seed: () => Rec[], searchKeys: string[]
     },
     async get(id) {
       const r = all().find((x) => String(x.id) === String(id));
-      if (!r) throw new Error(`Registro #${id} não encontrado.`);
+      if (!r) throw new Error(t('Registro #{id} não encontrado.', { id }));
       return r;
     },
     async create(v) {

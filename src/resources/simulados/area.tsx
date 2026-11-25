@@ -1,4 +1,5 @@
 import { fmtDate } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { areaStore, reservaStore } from '@/mock/data';
@@ -16,7 +17,7 @@ export const areaCfg: ResourceConfig = {
   adapter: areaStore,
   columns: [
     { key: 'area_comum_nome', label: 'Nome', strong: true },
-    { key: 'area_comum_capacidade', label: 'Capacidade', render: (r) => `${r.area_comum_capacidade} pessoas`, sortValue: (r) => r.area_comum_capacidade },
+    { key: 'area_comum_capacidade', label: 'Capacidade', render: (r) => t('{n} pessoas', { n: r.area_comum_capacidade }), sortValue: (r) => r.area_comum_capacidade },
     { key: 'reservas', label: 'Reservas no mês', render: (r) => reservaStore.all().filter((x) => x.area_comum_id === r.id && x.reserva_status === 1).length },
     { key: 'area_comum_status', label: 'Status', render: (r) => <Badge>{ativoTxt(r.area_comum_status, 'ATIVA', 'INATIVA')}</Badge> },
   ],
@@ -34,21 +35,21 @@ export const areaCfg: ResourceConfig = {
   toForm: (r) => ({ ...r }),
   toPayload: (v) => ({ ...v }),
   rowTitle: (r) => r.area_comum_nome,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: true,
-  hero: { kind: 'ÁREA COMUM', color: 'green', badges: (r) => [ativoTxt(r.area_comum_status, 'ATIVA', 'INATIVA')], sub: (r) => `Capacidade: ${r.area_comum_capacidade} pessoas` },
+  hero: { kind: 'ÁREA COMUM', color: 'green', badges: (r) => [ativoTxt(r.area_comum_status, 'ATIVA', 'INATIVA')], sub: (r) => t('Capacidade: {n} pessoas', { n: r.area_comum_capacidade }) },
   detailTitle: 'Dados da área comum',
   detailRows: (r) => [
     ['area_comum_nome', r.area_comum_nome],
     ['area_comum_descricao', vazio(r.area_comum_descricao)],
-    ['area_comum_capacidade', `${r.area_comum_capacidade} pessoas`],
+    ['area_comum_capacidade', t('{n} pessoas', { n: r.area_comum_capacidade })],
     ['area_comum_status', r.area_comum_status === 1 ? 'Ativa' : 'Inativa'],
   ],
   related: (r) => {
     const rs = reservaStore.all().filter((x) => x.area_comum_id === r.id);
     return {
       title: 'Reservas vinculadas',
-      items: rs.slice(0, 5).map((x) => ({ icon: '📅', title: x.morador_nome, sub: `${fmtDate(x.reserva_data_reserva)} · ${horario(x)} · ${x.reserva_tipo}`, to: `/reservas/${x.id}/editar` })),
+      items: rs.slice(0, 5).map((x) => ({ icon: '📅', title: x.morador_nome, sub: `${fmtDate(x.reserva_data_reserva)} · ${horario(x)} · ${t(x.reserva_tipo)}`, to: `/reservas/${x.id}/editar` })),
       footer: { label: 'Ver todas as reservas', to: '/reservas' },
     };
   },

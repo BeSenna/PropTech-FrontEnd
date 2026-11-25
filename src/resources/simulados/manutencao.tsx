@@ -1,4 +1,5 @@
 import { fmtDate } from '@/lib/format';
+import { t } from '@/i18n';
 import type { ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
 import { manutencaoStore, ocorrenciaStore } from '@/mock/data';
@@ -41,7 +42,7 @@ export const manutencaoCfg: ResourceConfig = {
   toPayload: (v) => ({ ...v, ocorrencia_id: Number(v.ocorrencia_id), ...(v.ocorrencia_id__label ? { ocorrencia_label: v.ocorrencia_id__label } : {}) }),
   newLabel: 'Registrar manutenção',
   rowTitle: (r) => r.manutencao_descricao,
-  idLabel: (r) => `Código ${idFmt(r.id)}`,
+  idLabel: (r) => `${t('Código')} ${idFmt(r.id)}`,
   hasDetail: false,
   statusOf: (r) => r.manutencao_status,
   inactivate: { label: 'Desativar', confirm: 'A manutenção sairá do painel de acompanhamento.' },
