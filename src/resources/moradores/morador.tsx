@@ -3,7 +3,7 @@ import { t } from '@/i18n';
 import { cpfValido, fmtCpf, fmtDate, fmtDateTime, hoje, onlyDigits, toDateInput, validarDataBr } from '@/lib/format';
 import type { Rec, ResourceConfig } from '@/models/types';
 import { Badge } from '@/components/ui';
-import { gruposDeImoveis } from '@/lib/relacao';
+import { gruposDeImoveis, vigente } from '@/lib/relacao';
 import { blocoLetra, imovelRotulo, moradorApi, vinculosPorMorador } from '@/services/moradorService';
 import { idFmt, ativoTxt, vazio, sv, quem, loadStatusOptions } from './shared';
 
@@ -64,10 +64,15 @@ export const moradorCfg: ResourceConfig = {
     { label: 'Proprietários', filters: { relacao: 'PROPRIETARIO' } },
     { label: 'Inquilinos', filters: { relacao: 'INQUILINO' } },
     { label: 'Moradores', filters: { relacao: 'MORADOR' } },
+    { label: 'Proprietário + Morador', filters: { combo: 1 } },
     { label: 'Temporada', filters: { relacao: 'TEMPORADA' } },
   ],
-  localFilterKeys: ['relacao'],
-  localFilter: (r, k, v) => k !== 'relacao' || (r._vinculos ?? []).some((x: Rec) => x.moradorImovelTipoRelacao === v && x.estado !== 'ENCERRADO'),
+  // "Proprietário + Morador": a pessoa é dona e também mora no MESMO imóvel (as duas relações em vigor), como na lista de Relações
+  localFilterKeys: ['relacao', 'combo'],
+  localFilter: (r, k, v) => {
+    if (k === 'combo') return gruposDeImoveis(r._vinculos).some((g) => g.relacoes.some((x) => vigente(x) && x.moradorImovelTipoRelacao === 'PROPRIETARIO') && g.relacoes.some((x) => vigente(x) && x.moradorImovelTipoRelacao === 'MORADOR'));
+    return k !== 'relacao' || (r._vinculos ?? []).some((x: Rec) => x.moradorImovelTipoRelacao === v && x.estado !== 'ENCERRADO');
+  },
   urlFilters: ['status'],
   selectFilters: [{ param: 'status', label: 'Status', load: loadStatusOptions }],
   searchable: true,
