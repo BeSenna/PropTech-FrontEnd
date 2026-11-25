@@ -5,7 +5,7 @@ Interface web do **Gestor de Manutenção de Condomínios** (Projeto Integrador 
 - **Painel do síndico** — cadastros (blocos, imóveis, moradores, relações, usuários), financeiro e serviços.
 - **Portal do Morador** — o morador vê o próprio imóvel, cobranças, reservas, ocorrências e avisos.
 
-**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4. O visual vem do protótipo do Figma (desktop 1440).
+**Stack:** Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4.
 
 ---
 
