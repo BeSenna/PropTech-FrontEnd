@@ -294,27 +294,3 @@ src/
 
 ---
 
-## 11. Problemas comuns
-
-| Sintoma | Causa provável | O que fazer |
-|---|---|---|
-| Login: "API indisponível (erro 500). Verifique se o MS Moradores está no ar." ou "Não foi possível falar com a API…" | Backend desligado, ou `API_PROXY_TARGET` ausente no `.env.local` | Suba o backend (`npx nest start`) e confira `API_PROXY_TARGET=http://localhost:7522`; reinicie o `npm run dev` |
-| Login: "Login ou senha inválidos" | Usuário ou senha errados | Use `admin` e a `ADMIN_SENHA` do backend. O síndico só é criado se ainda não existir um |
-| "Esta conta ainda não está vinculada a um morador" (portal) | A conta de morador foi criada sem relação | Crie o acesso em **Relação → Nova relação → Conceder acesso**, ou em **Usuários → Novo** escolhendo a **Relação**. Uma conta que já foi criada solta não pode ser ligada depois: crie outro login já ligado à relação e desative o antigo |
-| "CPF inválido" ao cadastrar | CPF com dígito verificador errado | Use um CPF válido, ex.: `529.982.247-25` |
-| "A senha deve ter entre 8 e 16 caracteres." / "…maiúscula e uma minúscula" / "…um número" / "…um caractere especial" | A senha não segue a política de senha | Use de 8 a 16 caracteres, com maiúscula, minúscula, número e caractere especial (ex.: `Senha@1234`) |
-| "Acesso negado. Você não tem permissão para esta ação." | A API respondeu 403: o perfil da conta não pode fazer isso | Entre com uma conta de síndico, ou peça a permissão |
-| "A API demorou mais de 10 s para responder." | Backend ou gateway lento ou travado; banco fora do ar | Tente de novo; confira `GET /condominio/morador/health` do backend (deve responder `Healthy`) |
-| `http://localhost:3000/` dá 404 | `NEXT_PUBLIC_BASE_PATH=/condominio` no `.env.local` | Deixe vazio (ou acesse `/condominio`) e reinicie o `npm run dev` |
-| A tela carrega, mas os botões não respondem (em dev) | Página aberta por `127.0.0.1`, que o Next.js em desenvolvimento pode bloquear | Abra por `http://localhost:3000` |
-| Mudei uma variável `NEXT_PUBLIC_*` e nada mudou | Elas são lidas no build | Reinicie o `npm run dev` ou rode `docker compose up -d --build` |
-| `port is already allocated` / `EADDRINUSE` | Porta 3000 (dev) ou 7520 (Docker) ocupada | Veja quem usa: `ss -ltnp \| grep 7520`; pare o processo ou o container (`docker ps`, `docker stop NOME`) |
-| `Please either run infisical init…` ao subir o Docker | Foi usado `npx infisical run` — o front não usa Infisical | Rode só `docker compose up -d --build` |
-| Container sobe, mas o login mostra erro de conexão com a API | A imagem não tem o proxy de desenvolvimento; o gateway não está acessível | Em teste local use `npm run dev`; em produção confira o gateway |
-| Em produção: 401 após o login, ou PATCH/DELETE falham | O gateway não repassa `Authorization` ou bloqueia os métodos | Corrija no gateway (veja a [seção 1](#1-como-o-sistema-se-encaixa)) |
-| Mensagens de erro da API não aparecem | O gateway troca o corpo das respostas de erro | O gateway precisa repassar os corpos 400/401/403 sem alterar |
-| Dados de Serviços sumiram | São simulados e ficam no navegador | Normal ao trocar de navegador ou limpar os dados do site |
-| Financeiro: "Não foi possível falar com a API. Verifique se o MS Financeiro está rodando." | MS Financeiro desligado, ou `FINANCEIRO_PROXY_TARGET` ausente no `.env.local` | Suba o MS Financeiro e confira `FINANCEIRO_PROXY_TARGET=http://localhost:7523`; reinicie o `npm run dev` |
-| Financeiro: 401 logo após entrar | O `JWT_SECRET` do MS Financeiro é diferente do MS Moradores | Use o mesmo valor nos dois (Infisical) |
-| Portal: "Nenhuma cobrança encontrada" para um morador com cobranças | O token foi emitido antes do Moradores passar a incluir os imóveis | Sair e entrar de novo |
-| Tela sem a fonte Inter | Sem acesso ao Google Fonts | Sem problema: o navegador usa a fonte do sistema |
